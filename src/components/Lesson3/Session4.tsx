@@ -1,587 +1,446 @@
 import React, { useState } from 'react';
 import { 
-  Stethoscope, 
-  Pill, 
-  Activity, 
   BookOpen, 
-  CheckCircle2, 
-  XCircle, 
-  ArrowRight, 
-  Thermometer, 
-  Syringe, 
-  ClipboardList, 
+  Target, 
+  Activity, 
+  Shield, 
+  AlertCircle, 
+  CheckCircle, 
+  HelpCircle, 
+  ArrowRight,
+  HeartPulse,
+  Scale,
+  Stethoscope,
   Brain,
-  Clock,
-  ShieldCheck,
-  AlertCircle
+  ChevronRight
 } from 'lucide-react';
 
-// --- Types & Interfaces ---
+// --- Types ---
 
-type TabId = 'rules' | 'vocab' | 'examples' | 'practice';
+type SectionTab = 'intro' | 'grammar' | 'vocab' | 'exercises' | 'summary';
 
 interface VocabItem {
-  word: string;
-  type: 'countable' | 'uncountable';
+  term: string;
+  meaning: string;
   icon: React.ReactNode;
-  translation: string;
 }
 
 // --- Data ---
 
-const vocabList: VocabItem[] = [
-  { word: 'Doctor visits', type: 'countable', icon: <Stethoscope className="w-5 h-5" />, translation: 'Visitas al doctor' },
-  { word: 'Medications', type: 'countable', icon: <Pill className="w-5 h-5" />, translation: 'Medicamentos' },
-  { word: 'Symptoms', type: 'countable', icon: <Activity className="w-5 h-5" />, translation: 'Síntomas' },
-  { word: 'Tests', type: 'countable', icon: <ClipboardList className="w-5 h-5" />, translation: 'Pruebas/Análisis' },
-  { word: 'Vaccines', type: 'countable', icon: <Syringe className="w-5 h-5" />, translation: 'Vacunas' },
-  { word: 'Check-ups', type: 'countable', icon: <CheckCircle2 className="w-5 h-5" />, translation: 'Chequeos' },
-  { word: 'Medicine', type: 'uncountable', icon: <Pill className="w-5 h-5 text-blue-500" />, translation: 'Medicina (general)' },
-  { word: 'Pain', type: 'uncountable', icon: <AlertCircle className="w-5 h-5" />, translation: 'Dolor' },
-  { word: 'Sleep', type: 'uncountable', icon: <Clock className="w-5 h-5" />, translation: 'Sueño' },
-  { word: 'Information', type: 'uncountable', icon: <BookOpen className="w-5 h-5" />, translation: 'Información' },
-  { word: 'Prevention', type: 'uncountable', icon: <ShieldCheck className="w-5 h-5" />, translation: 'Prevención' },
-  { word: 'Care', type: 'uncountable', icon: <Activity className="w-5 h-5" />, translation: 'Cuidado' },
+const VOCABULARY: VocabItem[] = [
+  { term: 'Risk', meaning: 'The possibility of harm or illness', icon: <AlertCircle className="w-5 h-5 text-red-500" /> },
+  { term: 'Prevention', meaning: 'Actions taken to stop disease', icon: <Shield className="w-5 h-5 text-emerald-500" /> },
+  { term: 'Protection', meaning: 'Measures that reduce danger', icon: <CheckCircle className="w-5 h-5 text-blue-500" /> },
+  { term: 'Illness', meaning: 'A disease or sickness', icon: <HeartPulse className="w-5 h-5 text-rose-500" /> },
+  { term: 'Treatment', meaning: 'Medical care for a condition', icon: <Stethoscope className="w-5 h-5 text-purple-500" /> },
 ];
 
 // --- Components ---
 
-const TabButton = ({ 
-  id, 
-  label, 
-  activeTab, 
-  onClick, 
-  icon 
-}: { 
-  id: TabId; 
-  label: string; 
-  activeTab: TabId; 
-  onClick: (id: TabId) => void;
-  icon: React.ReactNode;
-}) => (
-  <button
-    onClick={() => onClick(id)}
-    className={`flex items-center gap-2 px-4 py-3 text-sm font-medium transition-all duration-200 border-b-2 ${
-      activeTab === id
-        ? 'border-teal-600 text-teal-700 bg-teal-50'
-        : 'border-transparent text-slate-500 hover:text-slate-700 hover:bg-slate-50'
-    }`}
-  >
-    {icon}
-    {label}
-  </button>
-);
-
-const SectionTitle = ({ title, subtitle }: { title: string; subtitle?: string }) => (
-  <div className="mb-6">
-    <h2 className="text-2xl font-bold text-slate-800">{title}</h2>
-    {subtitle && <p className="text-slate-600 mt-1">{subtitle}</p>}
+const SectionCard = ({ title, icon, children, className = "" }: { title: string, icon?: React.ReactNode, children: React.ReactNode, className?: string }) => (
+  <div className={`bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden mb-6 ${className}`}>
+    <div className="bg-slate-50 px-6 py-4 border-b border-slate-100 flex items-center gap-3">
+      {icon && <div className="text-teal-600">{icon}</div>}
+      <h3 className="text-xl font-bold text-slate-800">{title}</h3>
+    </div>
+    <div className="p-6">
+      {children}
+    </div>
   </div>
 );
 
-// --- VIEW 1: Core Rules ---
-const CoreRuleView = () => {
-  return (
-    <div className="space-y-8 animate-in fade-in duration-500">
-      <SectionTitle 
-        title="1️⃣ Core Rule (Idea Central)" 
-        subtitle="Cómo elegir entre More, Fewer y Less dependiendo del sustantivo." 
-      />
+const NavButton = ({ id, label, icon, active, onClick }: { id: SectionTab, label: string, icon: React.ReactNode, active: boolean, onClick: (id: SectionTab) => void }) => (
+  <button
+    onClick={() => onClick(id)}
+    className={`flex items-center gap-2 px-4 py-3 rounded-lg font-medium transition-all duration-200 w-full sm:w-auto justify-center sm:justify-start
+      ${active 
+        ? 'bg-teal-600 text-white shadow-md' 
+        : 'bg-white text-slate-600 hover:bg-slate-50 hover:text-teal-700'
+      }`}
+  >
+    {icon}
+    <span>{label}</span>
+  </button>
+);
 
-      <div className="grid md:grid-cols-3 gap-6">
-        {/* Card 1: MORE */}
-        <div className="bg-emerald-50 border border-emerald-200 rounded-xl p-6 shadow-sm hover:shadow-md transition-shadow">
-          <div className="flex items-center justify-between mb-4">
-            <h3 className="text-xl font-bold text-emerald-800">MORE</h3>
-            <span className="text-3xl">⬆️</span>
+// --- Main App Component ---
+
+export default function App() {
+  const [activeTab, setActiveTab] = useState<SectionTab>('intro');
+
+  // Exercise 1 State
+  const [ex1Answers, setEx1Answers] = useState<Record<string, 'C' | 'U' | null>>({
+    risk: null, diseases: null, prevention: null, infections: null, treatment: null
+  });
+
+  // Exercise 2 State
+  const [ex2Answers, setEx2Answers] = useState<Record<number, string>>({});
+  const [ex2ShowResults, setEx2ShowResults] = useState(false);
+
+  // Exercise 3 State
+  const [showEx3Model, setShowEx3Model] = useState(false);
+
+  // --- Handlers ---
+
+  const handleEx1Select = (key: string, value: 'C' | 'U') => {
+    setEx1Answers(prev => ({ ...prev, [key]: value }));
+  };
+
+  const getEx1Status = (key: string, correct: 'C' | 'U') => {
+    if (ex1Answers[key] === null) return 'neutral';
+    return ex1Answers[key] === correct ? 'correct' : 'incorrect';
+  };
+
+  const renderContent = () => {
+    switch (activeTab) {
+      case 'intro':
+        return (
+          <div className="space-y-6 animate-in fade-in duration-500">
+            <SectionCard title="Lesson Overview" icon={<BookOpen />}>
+              <p className="text-slate-700 leading-relaxed mb-4">
+                This lesson focuses on using the English quantifiers <span className="font-bold text-teal-700">more</span>, <span className="font-bold text-teal-700">less</span>, and <span className="font-bold text-teal-700">fewer</span> to describe risks, benefits, and outcomes related to health and disease prevention.
+              </p>
+              <p className="text-slate-700 leading-relaxed">
+                You will learn how a healthy lifestyle can reduce illnesses and medical treatments, using the correct quantifier based on whether a noun is countable or uncountable. This lesson is designed for professionals and uses clear, practical examples.
+              </p>
+            </SectionCard>
+
+            <SectionCard title="Learning Objectives" icon={<Target />}>
+              <ul className="space-y-3">
+                {[
+                  "Compare health-related risks and benefits in English",
+                  "Use 'less' and 'more' correctly with uncountable nouns",
+                  "Use 'fewer' correctly with countable nouns (diseases)",
+                  "Understand and produce sentences applied to preventive care"
+                ].map((obj, idx) => (
+                  <li key={idx} className="flex items-start gap-3 text-slate-700">
+                    <CheckCircle className="w-5 h-5 text-teal-500 mt-0.5 flex-shrink-0" />
+                    <span>{obj}</span>
+                  </li>
+                ))}
+              </ul>
+            </SectionCard>
           </div>
-          <p className="font-medium text-emerald-900 mb-2">Cantidad Mayor</p>
-          <p className="text-sm text-emerald-700 mb-4">Funciona con TODO (Contable e Incontable).</p>
-          <div className="bg-white p-3 rounded-lg border border-emerald-100 text-sm">
-            <p>✅ More pills (Countable)</p>
-            <p>✅ More pain (Uncountable)</p>
-          </div>
-        </div>
+        );
 
-        {/* Card 2: FEWER */}
-        <div className="bg-blue-50 border border-blue-200 rounded-xl p-6 shadow-sm hover:shadow-md transition-shadow">
-          <div className="flex items-center justify-between mb-4">
-            <h3 className="text-xl font-bold text-blue-800">FEWER</h3>
-            <span className="text-3xl">⬇️</span>
-          </div>
-          <p className="font-medium text-blue-900 mb-2">Cantidad Menor</p>
-          <p className="text-sm text-blue-700 mb-4">Solo para <strong>Sustantivos Contables Plurales</strong>.</p>
-          <div className="bg-white p-3 rounded-lg border border-blue-100 text-sm">
-            <p>✅ Fewer medications</p>
-            <p className="text-red-500 line-through">❌ Fewer sleep</p>
-          </div>
-        </div>
-
-        {/* Card 3: LESS */}
-        <div className="bg-purple-50 border border-purple-200 rounded-xl p-6 shadow-sm hover:shadow-md transition-shadow">
-          <div className="flex items-center justify-between mb-4">
-            <h3 className="text-xl font-bold text-purple-800">LESS</h3>
-            <span className="text-3xl">⬇️</span>
-          </div>
-          <p className="font-medium text-purple-900 mb-2">Cantidad Menor</p>
-          <p className="text-sm text-purple-700 mb-4">Solo para <strong>Sustantivos Incontables</strong>.</p>
-          <div className="bg-white p-3 rounded-lg border border-purple-100 text-sm">
-            <p>✅ Less pain</p>
-            <p className="text-red-500 line-through">❌ Less pills</p>
-          </div>
-        </div>
-      </div>
-
-      <div className="bg-slate-100 p-4 rounded-lg flex items-start gap-3">
-        <Brain className="w-6 h-6 text-slate-600 flex-shrink-0 mt-1" />
-        <div>
-          <h4 className="font-bold text-slate-800">La Clave Maestra</h4>
-          <p className="text-slate-600">
-            Antes de elegir la palabra, pregúntate: <em>¿Puedo contar esto con números (1, 2, 3...)?</em>
-            <br/>
-            Si es <strong>SÍ</strong> (doctores, pastillas) usa <strong>Fewer</strong>.
-            <br/>
-            Si es <strong>NO</strong> (tiempo, dolor, información) usa <strong>Less</strong>.
-          </p>
-        </div>
-      </div>
-    </div>
-  );
-};
-
-// --- VIEW 2: Vocabulary ---
-const VocabularyView = () => {
-  const [filter, setFilter] = useState<'all' | 'countable' | 'uncountable'>('all');
-
-  const filteredList = vocabList.filter(item => 
-    filter === 'all' ? true : item.type === filter
-  );
-
-  return (
-    <div className="space-y-6 animate-in fade-in duration-500">
-      <SectionTitle 
-        title="2️⃣ Vocabulary Focus" 
-        subtitle="Identifica el tipo de sustantivo para aplicar la regla correcta." 
-      />
-
-      <div className="flex justify-center gap-2 mb-8">
-        <button 
-          onClick={() => setFilter('all')}
-          className={`px-4 py-2 rounded-full text-sm font-medium transition-colors ${filter === 'all' ? 'bg-slate-800 text-white' : 'bg-slate-100 text-slate-600'}`}
-        >
-          All Words
-        </button>
-        <button 
-          onClick={() => setFilter('countable')}
-          className={`px-4 py-2 rounded-full text-sm font-medium transition-colors ${filter === 'countable' ? 'bg-blue-600 text-white' : 'bg-blue-50 text-blue-600'}`}
-        >
-          Countable (Plural)
-        </button>
-        <button 
-          onClick={() => setFilter('uncountable')}
-          className={`px-4 py-2 rounded-full text-sm font-medium transition-colors ${filter === 'uncountable' ? 'bg-purple-600 text-white' : 'bg-purple-50 text-purple-600'}`}
-        >
-          Uncountable
-        </button>
-      </div>
-
-      <div className="grid sm:grid-cols-2 md:grid-cols-3 gap-4">
-        {filteredList.map((item, idx) => (
-          <div 
-            key={idx} 
-            className={`
-              relative p-4 rounded-xl border-l-4 shadow-sm hover:shadow-md transition-all
-              ${item.type === 'countable' ? 'border-l-blue-500 bg-white' : 'border-l-purple-500 bg-white'}
-            `}
-          >
-            <div className="flex items-start justify-between">
-              <div className="flex items-center gap-3">
-                <div className={`p-2 rounded-lg ${item.type === 'countable' ? 'bg-blue-100 text-blue-600' : 'bg-purple-100 text-purple-600'}`}>
-                  {item.icon}
+      case 'grammar':
+        return (
+          <div className="space-y-6 animate-in fade-in duration-500">
+            <SectionCard title="Countable vs Uncountable" icon={<Scale />}>
+              <div className="grid md:grid-cols-2 gap-6">
+                <div className="bg-orange-50 p-4 rounded-lg border border-orange-100">
+                  <h4 className="font-bold text-orange-800 mb-2 flex items-center gap-2">
+                    <span className="bg-orange-200 text-orange-800 text-xs px-2 py-1 rounded">Uncountable</span>
+                    General States
+                  </h4>
+                  <p className="text-sm text-slate-600 mb-3">Conditions or processes not counted as units.</p>
+                  <ul className="text-sm font-medium text-slate-700 list-disc list-inside space-y-1">
+                    <li>risk</li>
+                    <li>protection</li>
+                    <li>medical treatment</li>
+                    <li>prevention</li>
+                    <li>health</li>
+                  </ul>
                 </div>
-                <div>
-                  <h3 className="font-bold text-slate-800">{item.word}</h3>
-                  <p className="text-xs text-slate-500">{item.translation}</p>
+                <div className="bg-blue-50 p-4 rounded-lg border border-blue-100">
+                  <h4 className="font-bold text-blue-800 mb-2 flex items-center gap-2">
+                    <span className="bg-blue-200 text-blue-800 text-xs px-2 py-1 rounded">Countable</span>
+                    Specific Events
+                  </h4>
+                  <p className="text-sm text-slate-600 mb-3">Diseases or conditions that can be counted.</p>
+                  <ul className="text-sm font-medium text-slate-700 list-disc list-inside space-y-1">
+                    <li>diseases</li>
+                    <li>illnesses</li>
+                    <li>infections</li>
+                    <li>symptoms</li>
+                  </ul>
                 </div>
               </div>
-            </div>
-            <div className="mt-3 inline-block px-2 py-1 rounded text-xs font-bold uppercase tracking-wide bg-slate-100 text-slate-500">
-              {item.type}
-            </div>
-            <div className="mt-2 text-xs text-slate-400">
-              Usa: {item.type === 'countable' ? 'Fewer / More' : 'Less / More'}
-            </div>
-          </div>
-        ))}
-      </div>
-    </div>
-  );
-};
+            </SectionCard>
 
-// --- VIEW 3: Examples ---
-const ExamplesView = () => {
-  const examples = [
-    {
-      text: "Preventive care leads to fewer doctor visits.",
-      analysis: "Doctor visits = Countable Plural → FEWER",
-      icon: <Stethoscope className="w-8 h-8 text-teal-600" />
-    },
-    {
-      text: "Patients need more information about their health.",
-      analysis: "Information = Uncountable (allows MORE for increase)",
-      icon: <BookOpen className="w-8 h-8 text-teal-600" />
-    },
-    {
-      text: "A healthy lifestyle causes less pain.",
-      analysis: "Pain = Uncountable → LESS",
-      icon: <Activity className="w-8 h-8 text-teal-600" />
-    },
-    {
-      text: "Regular check-ups mean more prevention and fewer problems.",
-      analysis: "Prevention (Uncountable) / Problems (Countable)",
-      icon: <ShieldCheck className="w-8 h-8 text-teal-600" />
+            <SectionCard title="Comparing Risks (Uncountable)" icon={<Activity />}>
+              <p className="mb-4 text-slate-700">With uncountable nouns (risk, protection), use <span className="font-bold">more</span> or <span className="font-bold">less</span>.</p>
+              
+              <div className="flex flex-col sm:flex-row gap-4 mb-6">
+                <div className="flex-1 bg-slate-50 p-3 rounded border border-slate-200 text-center">
+                  <span className="text-2xl font-bold text-red-500 block mb-1">Less ▼</span>
+                  <span className="text-xs uppercase tracking-wide text-slate-500">A Reduction</span>
+                </div>
+                <div className="flex-1 bg-slate-50 p-3 rounded border border-slate-200 text-center">
+                  <span className="text-2xl font-bold text-green-500 block mb-1">More ▲</span>
+                  <span className="text-xs uppercase tracking-wide text-slate-500">An Increase</span>
+                </div>
+              </div>
+
+              <div className="bg-teal-50 p-4 rounded-lg border-l-4 border-teal-500">
+                <h5 className="font-bold text-teal-800 mb-2">Examples:</h5>
+                <ul className="space-y-2 text-slate-700">
+                  <li>• Regular exercise results in <span className="font-bold bg-white px-1 rounded">less risk</span> of disease.</li>
+                  <li>• Vaccination provides <span className="font-bold bg-white px-1 rounded">more protection</span> against infections.</li>
+                </ul>
+              </div>
+            </SectionCard>
+
+            <SectionCard title="Using 'Fewer' (Countable)" icon={<Activity />}>
+              <p className="mb-4 text-slate-700">Diseases and illnesses are usually countable. To indicate a smaller number, use <span className="font-bold">fewer</span>.</p>
+              
+              <div className="bg-indigo-50 p-4 rounded-lg border-l-4 border-indigo-500">
+                <h5 className="font-bold text-indigo-800 mb-2">Examples:</h5>
+                <ul className="space-y-2 text-slate-700">
+                  <li>• Preventive care leads to <span className="font-bold bg-white px-1 rounded">fewer illnesses</span>.</li>
+                  <li>• Good hygiene results in <span className="font-bold bg-white px-1 rounded">fewer infections</span> at work.</li>
+                </ul>
+              </div>
+            </SectionCard>
+
+             <SectionCard title="Model Comparison" icon={<Brain />}>
+              <p className="text-slate-600 mb-4">How to combine both concepts in one professional sentence:</p>
+              <div className="bg-slate-800 text-white p-6 rounded-xl shadow-lg text-center">
+                <p className="text-lg md:text-xl font-medium">
+                  "A healthy lifestyle leads to <span className="text-yellow-400">fewer diseases</span> and <span className="text-teal-400">less medical treatment</span>."
+                </p>
+              </div>
+              <div className="flex justify-center mt-4 gap-8 text-sm text-slate-500">
+                <div className="text-center">
+                  <span className="block font-bold text-slate-700">Diseases</span>
+                  Countable Plural
+                </div>
+                <div className="text-center">
+                  <span className="block font-bold text-slate-700">Treatment</span>
+                  Uncountable
+                </div>
+              </div>
+            </SectionCard>
+          </div>
+        );
+
+      case 'vocab':
+        return (
+          <div className="animate-in fade-in duration-500">
+            <SectionCard title="Target Vocabulary" icon={<BookOpen />}>
+              <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                {VOCABULARY.map((item, idx) => (
+                  <div key={idx} className="bg-slate-50 p-5 rounded-lg border border-slate-200 hover:shadow-md transition-shadow">
+                    <div className="flex items-center gap-3 mb-3">
+                      <div className="p-2 bg-white rounded-full shadow-sm border border-slate-100">
+                        {item.icon}
+                      </div>
+                      <h4 className="font-bold text-slate-800">{item.term}</h4>
+                    </div>
+                    <p className="text-sm text-slate-600 leading-relaxed">{item.meaning}</p>
+                  </div>
+                ))}
+              </div>
+            </SectionCard>
+          </div>
+        );
+
+      case 'exercises':
+        return (
+          <div className="space-y-8 animate-in fade-in duration-500">
+            {/* Exercise 1 */}
+            <SectionCard title="Ex 1: Classify the Nouns" icon={<Brain />}>
+              <p className="mb-4 text-slate-600">Is the noun Countable (C) or Uncountable (U)?</p>
+              <div className="space-y-3">
+                {[
+                  { id: 'risk', word: 'Risk', correct: 'U' },
+                  { id: 'diseases', word: 'Diseases', correct: 'C' },
+                  { id: 'prevention', word: 'Prevention', correct: 'U' },
+                  { id: 'infections', word: 'Infections', correct: 'C' },
+                  { id: 'treatment', word: 'Medical Treatment', correct: 'U' },
+                ].map((q) => {
+                  const status = getEx1Status(q.id, q.correct as 'C' | 'U');
+                  return (
+                    <div key={q.id} className="flex items-center justify-between p-3 bg-slate-50 rounded border border-slate-200">
+                      <span className="font-medium text-slate-700">{q.word}</span>
+                      <div className="flex gap-2">
+                        <button 
+                          onClick={() => handleEx1Select(q.id, 'C')}
+                          className={`px-3 py-1 text-sm rounded font-bold transition-colors ${ex1Answers[q.id] === 'C' ? (status === 'correct' && q.correct === 'C' ? 'bg-green-500 text-white' : (status === 'incorrect' ? 'bg-red-500 text-white' : 'bg-blue-600 text-white')) : 'bg-white border border-slate-300 text-slate-500'}`}
+                        >
+                          Countable
+                        </button>
+                        <button 
+                          onClick={() => handleEx1Select(q.id, 'U')}
+                          className={`px-3 py-1 text-sm rounded font-bold transition-colors ${ex1Answers[q.id] === 'U' ? (status === 'correct' && q.correct === 'U' ? 'bg-green-500 text-white' : (status === 'incorrect' ? 'bg-red-500 text-white' : 'bg-blue-600 text-white')) : 'bg-white border border-slate-300 text-slate-500'}`}
+                        >
+                          Uncountable
+                        </button>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </SectionCard>
+
+            {/* Exercise 2 */}
+            <SectionCard title="Ex 2: Choose the Correct Quantifier" icon={<HelpCircle />}>
+              <p className="mb-4 text-slate-600">Complete each sentence with <em>more</em>, <em>less</em>, or <em>fewer</em>.</p>
+              <div className="space-y-4">
+                {[
+                  { id: 1, text: "A healthy lifestyle means ___ risk of chronic disease.", correct: "less" },
+                  { id: 2, text: "Preventive care results in ___ illnesses.", correct: "fewer" },
+                  { id: 3, text: "Regular checkups provide ___ protection.", correct: "more" },
+                  { id: 4, text: "Healthy habits require ___ medical treatment.", correct: "less" }
+                ].map((q) => (
+                  <div key={q.id} className="p-4 bg-white border border-slate-200 rounded-lg shadow-sm">
+                    <div className="flex flex-col sm:flex-row sm:items-center gap-3">
+                      <select 
+                        className={`p-2 border rounded text-sm bg-slate-50 font-medium
+                          ${ex2ShowResults 
+                            ? (ex2Answers[q.id] === q.correct ? 'border-green-500 text-green-700 bg-green-50' : 'border-red-500 text-red-700 bg-red-50')
+                            : 'border-slate-300 text-slate-700'
+                          }`}
+                        value={ex2Answers[q.id] || ""}
+                        onChange={(e) => setEx2Answers({...ex2Answers, [q.id]: e.target.value})}
+                        disabled={ex2ShowResults}
+                      >
+                        <option value="">Select...</option>
+                        <option value="more">more</option>
+                        <option value="less">less</option>
+                        <option value="fewer">fewer</option>
+                      </select>
+                      <span className="text-slate-700">{q.text.replace('___', '...')}</span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+              <button 
+                onClick={() => setEx2ShowResults(!ex2ShowResults)}
+                className="mt-4 px-6 py-2 bg-teal-600 hover:bg-teal-700 text-white rounded font-medium transition-colors"
+              >
+                {ex2ShowResults ? "Reset" : "Check Answers"}
+              </button>
+            </SectionCard>
+
+            {/* Exercise 3 */}
+            <SectionCard title="Ex 3: Comparative Sentences" icon={<Stethoscope />}>
+              <p className="mb-4 text-slate-600">Write a complete sentence comparing an unhealthy and healthy lifestyle using the words: <span className="font-bold">Diseases</span> and <span className="font-bold">Medical Treatment</span>.</p>
+              
+              <textarea 
+                className="w-full p-4 border border-slate-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-teal-500 outline-none min-h-[100px] mb-4"
+                placeholder="Type your sentence here..."
+              ></textarea>
+              
+              <div className="bg-blue-50 p-4 rounded-lg">
+                <button 
+                  onClick={() => setShowEx3Model(!showEx3Model)}
+                  className="text-blue-600 font-bold hover:underline flex items-center gap-2"
+                >
+                  {showEx3Model ? "Hide Model Answer" : "Show Model Answer"}
+                  <ChevronRight className={`w-4 h-4 transition-transform ${showEx3Model ? 'rotate-90' : ''}`} />
+                </button>
+                
+                {showEx3Model && (
+                  <div className="mt-3 text-slate-700 animate-in slide-in-from-top-2">
+                    <p className="font-medium">Model sentence:</p>
+                    <p className="italic">"A healthy lifestyle leads to <span className="font-bold text-teal-600">fewer</span> diseases and <span className="font-bold text-teal-600">less</span> medical treatment."</p>
+                    <div className="mt-2 text-sm text-slate-500 border-t border-blue-200 pt-2">
+                      <p>Check: Did you use <strong>fewer</strong> for diseases (countable) and <strong>less</strong> for treatment (uncountable)?</p>
+                    </div>
+                  </div>
+                )}
+              </div>
+            </SectionCard>
+          </div>
+        );
+
+      case 'summary':
+        return (
+          <div className="animate-in fade-in duration-500">
+             <SectionCard title="Lesson Summary" icon={<CheckCircle />}>
+              <div className="prose text-slate-700">
+                <p className="mb-4 text-lg">
+                  In this lesson, you learned how to describe and compare health-related risks, benefits, and outcomes using <span className="font-bold text-teal-700">more</span>, <span className="font-bold text-teal-700">less</span>, and <span className="font-bold text-teal-700">fewer</span>.
+                </p>
+                <div className="bg-slate-100 p-6 rounded-xl">
+                  <h4 className="font-bold text-slate-800 mb-4">Key Takeaways:</h4>
+                  <ul className="space-y-4">
+                    <li className="flex items-center gap-3">
+                      <span className="bg-white p-2 rounded shadow-sm font-bold text-slate-700">Uncountable Nouns</span>
+                      <span>(risk, health) → Use <strong>Less / More</strong></span>
+                    </li>
+                    <li className="flex items-center gap-3">
+                      <span className="bg-white p-2 rounded shadow-sm font-bold text-slate-700">Countable Nouns</span>
+                      <span>(diseases, infections) → Use <strong>Fewer</strong></span>
+                    </li>
+                  </ul>
+                </div>
+                <p className="mt-6">
+                  Using these quantifiers correctly allows you to clearly explain how preventive habits reduce disease, lower risk, and improve overall quality of life in everyday English.
+                </p>
+              </div>
+            </SectionCard>
+          </div>
+        );
+      default:
+        return null;
     }
-  ];
-
-  return (
-    <div className="space-y-6 animate-in fade-in duration-500">
-       <SectionTitle 
-        title="3️⃣ Examples in Context" 
-        subtitle="Observa cómo se aplican las reglas en oraciones médicas reales." 
-      />
-      
-      <div className="space-y-4">
-        {examples.map((ex, i) => (
-          <div key={i} className="flex flex-col md:flex-row gap-4 bg-white p-6 rounded-xl border border-slate-200 shadow-sm items-center">
-            <div className="bg-teal-50 p-4 rounded-full flex-shrink-0">
-              {ex.icon}
-            </div>
-            <div className="flex-grow text-center md:text-left">
-              <p className="text-lg font-medium text-slate-800 mb-2">"{ex.text}"</p>
-              <div className="inline-block bg-slate-100 px-3 py-1 rounded text-sm text-slate-600 font-mono">
-                🔍 {ex.analysis}
-              </div>
-            </div>
-          </div>
-        ))}
-      </div>
-
-      <div className="bg-orange-50 p-6 rounded-xl border border-orange-200 mt-8">
-        <h4 className="font-bold text-orange-800 flex items-center gap-2">
-          <AlertCircle className="w-5 h-5"/>
-          Common Mistakes / Errores Comunes
-        </h4>
-        <ul className="mt-3 space-y-2 text-orange-900">
-          <li className="flex items-center gap-2">
-             ❌ "Less people" (Incorrecto) → ✅ "Fewer people" (Correcto - People es plural)
-          </li>
-          <li className="flex items-center gap-2">
-             ❌ "Fewer pain" (Incorrecto) → ✅ "Less pain" (Correcto - Pain es incontable)
-          </li>
-        </ul>
-      </div>
-    </div>
-  );
-};
-
-// --- VIEW 4: Practice ---
-const PracticeView = () => {
-  // State for Part A
-  const [partA, setPartA] = useState({ q1: '', q2: '', q3: '', q4: '' });
-  const [checkA, setCheckA] = useState(false);
-
-  // State for Part B
-  const [partB, setPartB] = useState({ q1: '', q2: '', q3: '' });
-
-  // State for Part C (Reveal answer)
-  const [revealC, setRevealC] = useState({ q1: false, q2: false });
-
-  const validateA = (val: string, correct: string) => {
-    if (!checkA) return 'border-slate-300';
-    return val.toLowerCase().trim() === correct 
-      ? 'border-green-500 bg-green-50 text-green-700' 
-      : 'border-red-500 bg-red-50 text-red-700';
   };
 
   return (
-    <div className="space-y-10 animate-in fade-in duration-500 max-w-3xl mx-auto">
-      <SectionTitle 
-        title="4️⃣ Guided Practice" 
-        subtitle="Pon a prueba tus conocimientos." 
-      />
-
-      {/* Part A */}
-      <div className="bg-white p-6 rounded-xl border border-slate-200 shadow-sm">
-        <h3 className="font-bold text-lg mb-4 text-teal-700">A. Fill in the blanks (more / fewer / less)</h3>
-        <div className="space-y-4">
-          <div className="flex flex-col sm:flex-row sm:items-center gap-2">
-            <span>1. Exercise often results in</span>
-            <input 
-              type="text" 
-              placeholder="?" 
-              value={partA.q1}
-              onChange={(e) => setPartA({...partA, q1: e.target.value})}
-              className={`p-2 border rounded w-32 outline-none transition-colors ${validateA(partA.q1, 'fewer')}`} 
-            />
-            <span>doctor visits.</span>
-            {checkA && partA.q1.toLowerCase() !== 'fewer' && <span className="text-red-500 text-sm">(fewer)</span>}
-          </div>
-          
-          <div className="flex flex-col sm:flex-row sm:items-center gap-2">
-            <span>2. This treatment causes</span>
-            <input 
-              type="text" 
-              placeholder="?" 
-              value={partA.q2}
-              onChange={(e) => setPartA({...partA, q2: e.target.value})}
-              className={`p-2 border rounded w-32 outline-none transition-colors ${validateA(partA.q2, 'less')}`} 
-            />
-            <span>pain.</span>
-            {checkA && partA.q2.toLowerCase() !== 'less' && <span className="text-red-500 text-sm">(less)</span>}
-          </div>
-
-          <div className="flex flex-col sm:flex-row sm:items-center gap-2">
-            <span>3. People need</span>
-            <input 
-              type="text" 
-              placeholder="?" 
-              value={partA.q3}
-              onChange={(e) => setPartA({...partA, q3: e.target.value})}
-              className={`p-2 border rounded w-32 outline-none transition-colors ${validateA(partA.q3, 'more')}`} 
-            />
-            <span>information about prevention.</span>
-            {checkA && partA.q3.toLowerCase() !== 'more' && <span className="text-red-500 text-sm">(more)</span>}
-          </div>
-
-          <div className="flex flex-col sm:flex-row sm:items-center gap-2">
-            <span>4. A good routine creates</span>
-            <input 
-              type="text" 
-              placeholder="?" 
-              value={partA.q4}
-              onChange={(e) => setPartA({...partA, q4: e.target.value})}
-              className={`p-2 border rounded w-32 outline-none transition-colors ${validateA(partA.q4, 'fewer')}`} 
-            />
-            <span>health problems.</span>
-            {checkA && partA.q4.toLowerCase() !== 'fewer' && <span className="text-red-500 text-sm">(fewer)</span>}
-          </div>
-        </div>
-        <button 
-          onClick={() => setCheckA(true)} 
-          className="mt-4 bg-teal-600 text-white px-4 py-2 rounded hover:bg-teal-700 transition-colors"
-        >
-          Check Answers
-        </button>
-      </div>
-
-      {/* Part B */}
-      <div className="bg-white p-6 rounded-xl border border-slate-200 shadow-sm">
-        <h3 className="font-bold text-lg mb-4 text-teal-700">B. Choose the correct option</h3>
-        
-        <div className="grid md:grid-cols-3 gap-6">
-          {/* Q1 */}
-          <div className="bg-slate-50 p-4 rounded-lg">
-            <p className="font-medium mb-3 flex items-center gap-2"><Pill className="w-4 h-4"/> Medications</p>
-            <div className="flex flex-col gap-2">
-              {['more', 'fewer', 'less'].map((opt) => (
-                <button 
-                  key={opt}
-                  onClick={() => setPartB({...partB, q1: opt})}
-                  className={`px-3 py-1 rounded text-left text-sm border ${
-                    partB.q1 === opt 
-                      ? (opt === 'less' ? 'bg-red-100 border-red-300 text-red-800' : 'bg-green-100 border-green-300 text-green-800')
-                      : 'border-slate-300 hover:bg-white'
-                  }`}
-                >
-                  {opt}
-                </button>
-              ))}
-            </div>
-            {partB.q1 && <p className="text-xs mt-2 text-slate-500">{partB.q1 === 'less' ? '❌ Medications is countable.' : '✅ Correct usage.'}</p>}
-          </div>
-
-          {/* Q2 */}
-          <div className="bg-slate-50 p-4 rounded-lg">
-            <p className="font-medium mb-3 flex items-center gap-2"><AlertCircle className="w-4 h-4"/> Pain</p>
-            <div className="flex flex-col gap-2">
-              {['more', 'fewer', 'less'].map((opt) => (
-                <button 
-                  key={opt}
-                  onClick={() => setPartB({...partB, q2: opt})}
-                  className={`px-3 py-1 rounded text-left text-sm border ${
-                    partB.q2 === opt 
-                      ? (opt === 'fewer' ? 'bg-red-100 border-red-300 text-red-800' : 'bg-green-100 border-green-300 text-green-800')
-                      : 'border-slate-300 hover:bg-white'
-                  }`}
-                >
-                  {opt}
-                </button>
-              ))}
-            </div>
-            {partB.q2 && <p className="text-xs mt-2 text-slate-500">{partB.q2 === 'fewer' ? '❌ Pain is uncountable.' : '✅ Correct usage.'}</p>}
-          </div>
-
-           {/* Q3 */}
-           <div className="bg-slate-50 p-4 rounded-lg">
-            <p className="font-medium mb-3 flex items-center gap-2"><CheckCircle2 className="w-4 h-4"/> Check-ups</p>
-            <div className="flex flex-col gap-2">
-              {['more', 'fewer', 'less'].map((opt) => (
-                <button 
-                  key={opt}
-                  onClick={() => setPartB({...partB, q3: opt})}
-                  className={`px-3 py-1 rounded text-left text-sm border ${
-                    partB.q3 === opt 
-                      ? (opt === 'less' ? 'bg-red-100 border-red-300 text-red-800' : 'bg-green-100 border-green-300 text-green-800')
-                      : 'border-slate-300 hover:bg-white'
-                  }`}
-                >
-                  {opt}
-                </button>
-              ))}
-            </div>
-            {partB.q3 && <p className="text-xs mt-2 text-slate-500">{partB.q3 === 'less' ? '❌ Check-ups is countable.' : '✅ Correct usage.'}</p>}
-          </div>
-        </div>
-      </div>
-
-      {/* Part C */}
-      <div className="bg-white p-6 rounded-xl border border-slate-200 shadow-sm">
-        <h3 className="font-bold text-lg mb-4 text-teal-700">C. Transform the sentence</h3>
-        
-        <div className="space-y-6">
-          <div>
-            <p className="text-slate-800 mb-2">1. People should reduce stress and increase exercise.</p>
-            <div className="flex items-center gap-2 text-slate-500 italic mb-2">
-               <ArrowRight className="w-4 h-4"/> People should have...
-            </div>
-            <textarea className="w-full p-2 border border-slate-300 rounded mb-2 h-20" placeholder="Type your sentence here..."></textarea>
-            <button 
-              onClick={() => setRevealC({...revealC, q1: !revealC.q1})}
-              className="text-teal-600 text-sm font-medium hover:underline"
-            >
-              {revealC.q1 ? 'Hide Answer' : 'Show Suggested Answer'}
-            </button>
-            {revealC.q1 && (
-              <div className="mt-2 bg-green-50 p-3 rounded text-green-800 text-sm">
-                <strong>Option:</strong> People should have <u>less stress</u> and <u>more exercise</u>.
-              </div>
-            )}
-          </div>
-
-          <div>
-            <p className="text-slate-800 mb-2">2. This habit causes many health problems.</p>
-            <div className="flex items-center gap-2 text-slate-500 italic mb-2">
-               <ArrowRight className="w-4 h-4"/> This habit causes...
-            </div>
-            <textarea className="w-full p-2 border border-slate-300 rounded mb-2 h-20" placeholder="Type your sentence here..."></textarea>
-            <button 
-              onClick={() => setRevealC({...revealC, q2: !revealC.q2})}
-              className="text-teal-600 text-sm font-medium hover:underline"
-            >
-              {revealC.q2 ? 'Hide Answer' : 'Show Suggested Answer'}
-            </button>
-            {revealC.q2 && (
-              <div className="mt-2 bg-green-50 p-3 rounded text-green-800 text-sm">
-                <strong>Option:</strong> This habit causes <u>more health problems</u>.
-              </div>
-            )}
-          </div>
-        </div>
-      </div>
-
-      {/* Part D */}
-      <div className="bg-slate-800 p-6 rounded-xl border border-slate-700 shadow-sm text-white">
-        <h3 className="font-bold text-lg mb-4 flex items-center gap-2">
-          <Brain className="w-5 h-5 text-teal-400" />
-          D. Personal Production
-        </h3>
-        <p className="text-slate-300 text-sm mb-4">
-          Think about your own habits. Write sentences mentally or in your notebook using:
-          <br/>
-          • At least one with <strong>more</strong>
-          <br/>
-          • One with <strong>fewer</strong>
-          <br/>
-          • One with <strong>less</strong>
-        </p>
-        <div className="bg-slate-700/50 p-4 rounded text-sm italic text-slate-400">
-          Example: "I need to drink more water so I have fewer headaches."
-        </div>
-      </div>
-
-    </div>
-  );
-};
-
-// --- MAIN APP ---
-
-const MedicalGrammarApp = () => {
-  const [activeTab, setActiveTab] = useState<TabId>('rules');
-
-  return (
-    <div className="min-h-screen bg-slate-50 font-sans text-slate-900 pb-12">
+    <div className="min-h-screen bg-slate-100 font-sans text-slate-800">
       {/* Header */}
-      <header className="bg-white border-b border-slate-200 sticky top-0 z-10">
-        <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center justify-between h-16">
-            <div className="flex items-center gap-2">
-              <div className="bg-teal-600 p-2 rounded-lg text-white">
-                <Thermometer className="w-5 h-5" />
-              </div>
-              <div>
-                <h1 className="text-lg font-bold text-slate-800 leading-tight">Medical Habits & Prevention</h1>
-                <p className="text-xs text-slate-500 font-medium">Grammar Focus: Quantifiers</p>
-              </div>
-            </div>
+      <header className="bg-teal-700 text-white shadow-lg">
+        <div className="max-w-5xl mx-auto px-4 py-6">
+          <div className="flex items-center gap-3 mb-2">
+            <HeartPulse className="w-8 h-8 text-teal-300" />
+            <span className="text-teal-200 uppercase tracking-wider text-xs font-bold">English for Healthcare</span>
           </div>
-        </div>
-        
-        {/* Navigation Tabs */}
-        <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 overflow-x-auto">
-          <div className="flex space-x-2">
-            <TabButton 
-              id="rules" 
-              label="1. Rules" 
-              activeTab={activeTab} 
-              onClick={setActiveTab} 
-              icon={<Brain className="w-4 h-4"/>}
-            />
-            <TabButton 
-              id="vocab" 
-              label="2. Vocabulary" 
-              activeTab={activeTab} 
-              onClick={setActiveTab} 
-              icon={<BookOpen className="w-4 h-4"/>}
-            />
-            <TabButton 
-              id="examples" 
-              label="3. Examples" 
-              activeTab={activeTab} 
-              onClick={setActiveTab} 
-              icon={<Activity className="w-4 h-4"/>}
-            />
-            <TabButton 
-              id="practice" 
-              label="4. Practice" 
-              activeTab={activeTab} 
-              onClick={setActiveTab} 
-              icon={<CheckCircle2 className="w-4 h-4"/>}
-            />
-          </div>
+          <h1 className="text-2xl md:text-3xl font-bold">Health and Disease Prevention</h1>
+          <p className="text-teal-100 mt-2 text-lg">Mastering: More, Less, and Fewer</p>
         </div>
       </header>
 
       {/* Main Content Area */}
-      <main className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="bg-white/50 min-h-[500px]">
-          {activeTab === 'rules' && <CoreRuleView />}
-          {activeTab === 'vocab' && <VocabularyView />}
-          {activeTab === 'examples' && <ExamplesView />}
-          {activeTab === 'practice' && <PracticeView />}
+      <main className="max-w-5xl mx-auto px-4 py-8">
+        
+        {/* Navigation Tabs */}
+        <div className="flex flex-wrap gap-2 mb-8 border-b border-slate-200 pb-4">
+          <NavButton 
+            id="intro" 
+            label="Overview" 
+            icon={<BookOpen className="w-4 h-4" />} 
+            active={activeTab === 'intro'} 
+            onClick={setActiveTab} 
+          />
+          <NavButton 
+            id="grammar" 
+            label="Grammar" 
+            icon={<Brain className="w-4 h-4" />} 
+            active={activeTab === 'grammar'} 
+            onClick={setActiveTab} 
+          />
+           <NavButton 
+            id="vocab" 
+            label="Vocabulary" 
+            icon={<Target className="w-4 h-4" />} 
+            active={activeTab === 'vocab'} 
+            onClick={setActiveTab} 
+          />
+          <NavButton 
+            id="exercises" 
+            label="Exercises" 
+            icon={<Activity className="w-4 h-4" />} 
+            active={activeTab === 'exercises'} 
+            onClick={setActiveTab} 
+          />
+          <NavButton 
+            id="summary" 
+            label="Summary" 
+            icon={<CheckCircle className="w-4 h-4" />} 
+            active={activeTab === 'summary'} 
+            onClick={setActiveTab} 
+          />
         </div>
+
+        {/* Dynamic Content */}
+        <div className="min-h-[400px]">
+          {renderContent()}
+        </div>
+
       </main>
+
     </div>
   );
-};
-
-export default MedicalGrammarApp;
+}

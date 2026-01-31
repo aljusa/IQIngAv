@@ -1,471 +1,453 @@
 import React, { useState } from 'react';
 import { 
-  Dumbbell, 
-  Clock, 
-  Footprints, 
-  Coffee, 
+  BookOpen, 
   Activity, 
-  Heart, 
+  List, 
   CheckCircle, 
-  XCircle, 
+  Brain, 
   ChevronRight, 
-  BookOpen,
-  Edit3,
-  Lightbulb,
-  ArrowRight
+  Scale, 
+  Move,
+  Monitor,
+  Check,
+  X
 } from 'lucide-react';
 
 // --- Types ---
 
-type Tab = 'rule' | 'vocabulary' | 'examples' | 'practice';
+type TabId = 'overview' | 'grammar' | 'vocabulary' | 'practice' | 'summary';
 
-interface VocabItem {
-  word: string;
-  translation: string;
+interface Tab {
+  id: TabId;
+  label: string;
   icon: React.ReactNode;
-  example: string;
 }
 
-interface QuizQuestion {
-  id: number;
-  question: string;
-  type: 'fill' | 'choice' | 'transform';
-  options?: string[];
-  correctAnswer: string | string[];
-  hint?: string;
+interface QuizState {
+  ex1: Record<string, string>;
+  ex2: Record<string, string>;
+  showResults: boolean;
 }
-
-// --- Data ---
-
-const vocabList: VocabItem[] = [
-  { word: 'hours', translation: 'horas', icon: <Clock className="w-6 h-6" />, example: 'We have fewer hours of sunlight in winter.' },
-  { word: 'exercises', translation: 'ejercicios', icon: <Dumbbell className="w-6 h-6" />, example: 'Do fewer exercises, but do them correctly.' },
-  { word: 'steps', translation: 'pasos', icon: <Footprints className="w-6 h-6" />, example: 'Taking fewer steps can affect your health.' },
-  { word: 'workouts', translation: 'entrenamientos', icon: <Activity className="w-6 h-6" />, example: 'He did fewer workouts this month.' },
-  { word: 'breaks', translation: 'descansos', icon: <Coffee className="w-6 h-6" />, example: 'Try taking fewer breaks during work.' },
-  { word: 'habits', translation: 'hábitos', icon: <Heart className="w-6 h-6" />, example: 'Develop fewer bad habits.' },
-];
-
-const practiceQuestions: QuizQuestion[] = [
-  // A. Fill in the blanks
-  { id: 1, type: 'fill', question: 'To stay active, spend _____ hours on the sofa.', correctAnswer: 'fewer', hint: 'Usa la palabra clave de la lección.' },
-  { id: 2, type: 'fill', question: 'He wants to have _____ unhealthy habits.', correctAnswer: 'fewer', hint: 'Hábitos es contable.' },
-  { id: 3, type: 'fill', question: 'This routine has _____ exercises.', correctAnswer: 'fewer', hint: 'Ejercicios se pueden contar.' },
-  { id: 4, type: 'fill', question: 'Office workers should take _____ long breaks.', correctAnswer: 'fewer', hint: 'Breaks es plural.' },
-  // B. Choose correct option
-  { id: 5, type: 'choice', question: 'Choose the correct form:', options: ['fewer hour', 'fewer hours'], correctAnswer: 'fewer hours' },
-  { id: 6, type: 'choice', question: 'Choose the correct form:', options: ['fewer activity', 'fewer activities'], correctAnswer: 'fewer activities' },
-  { id: 7, type: 'choice', question: 'Choose the correct form:', options: ['fewer workout', 'fewer workouts'], correctAnswer: 'fewer workouts' },
-  // C. Transform
-  { id: 8, type: 'transform', question: 'Do not do many unhealthy habits.', correctAnswer: 'Do fewer unhealthy habits', hint: 'Reemplaza "not do many" con "Do fewer..."' },
-  { id: 9, type: 'transform', question: 'I spend many hours sitting.', correctAnswer: 'I spend fewer hours sitting', hint: 'Lo opuesto de "many hours" es...' },
-];
 
 // --- Components ---
 
-const Header = () => (
-  <header className="bg-gradient-to-r from-emerald-600 to-teal-600 text-white p-6 rounded-b-3xl shadow-lg mb-8">
-    <div className="flex items-center gap-3">
-      <Activity className="w-8 h-8 text-emerald-200" />
-      <div>
-        <h1 className="text-2xl font-bold">Physical Activity & Lifestyle</h1>
-        <p className="text-emerald-100 text-sm">Grammar Focus: Fewer + Plural Countable Nouns</p>
-      </div>
-    </div>
-  </header>
-);
+export default function App() {
+  const [activeTab, setActiveTab] = useState<TabId>('overview');
 
-const TabButton = ({ active, label, onClick, icon }: { active: boolean; label: string; onClick: () => void; icon: React.ReactNode }) => (
-  <button
-    onClick={onClick}
-    className={`flex items-center gap-2 px-4 py-3 rounded-t-xl transition-all duration-300 font-medium ${
-      active
-        ? 'bg-white text-emerald-600 shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.1)] border-t-4 border-emerald-500'
-        : 'bg-gray-100 text-gray-500 hover:bg-gray-200'
-    }`}
-  >
-    {icon}
-    <span className="hidden sm:inline">{label}</span>
-  </button>
-);
-
-// --- Section 1: Core Rule ---
-const CoreRuleSection = () => {
-  return (
-    <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
-      <div className="bg-white p-8 rounded-2xl shadow-sm border border-emerald-100 text-center">
-        <h2 className="text-3xl font-bold text-gray-800 mb-6">La Regla de Oro</h2>
-        
-        <div className="flex flex-col md:flex-row items-center justify-center gap-6 mb-8">
-          <div className="bg-emerald-50 p-6 rounded-xl border-2 border-emerald-200 w-full md:w-auto">
-            <span className="text-4xl font-extrabold text-emerald-600 block mb-2">FEWER</span>
-            <span className="text-sm text-emerald-800 uppercase tracking-wider font-semibold">Menor Cantidad</span>
-          </div>
-          <div className="text-4xl text-gray-300 font-light">+</div>
-          <div className="bg-blue-50 p-6 rounded-xl border-2 border-blue-200 w-full md:w-auto">
-            <span className="text-xl font-bold text-blue-800 block mb-2">PLURAL COUNTABLE NOUNS</span>
-            <div className="flex justify-center gap-2 text-blue-600">
-              <span className="text-xs bg-white px-2 py-1 rounded border border-blue-200">Apples</span>
-              <span className="text-xs bg-white px-2 py-1 rounded border border-blue-200">Steps</span>
-              <span className="text-xs bg-white px-2 py-1 rounded border border-blue-200">Hours</span>
-            </div>
-          </div>
-        </div>
-
-        <div className="bg-yellow-50 p-4 rounded-lg text-left border-l-4 border-yellow-400">
-          <h3 className="flex items-center gap-2 font-bold text-yellow-800 mb-2">
-            <Lightbulb className="w-5 h-5" />
-            ¿Cómo saber si es contable?
-          </h3>
-          <p className="text-yellow-900">
-            La prueba rápida: Si puedes poner un número delante (one, two, three...), ¡es contable!
-            <br />
-            <span className="font-mono text-sm mt-2 block bg-yellow-100 p-2 rounded w-fit">
-              ✅ One hour, Two hours → Usamos <strong>Fewer</strong>
-            </span>
-          </p>
-        </div>
-      </div>
-    </div>
-  );
-};
-
-// --- Section 2: Vocabulary ---
-const VocabularySection = () => {
-  const [flippedIndex, setFlippedIndex] = useState<number | null>(null);
-
-  return (
-    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
-      {vocabList.map((item, index) => (
-        <div 
-          key={item.word}
-          className="relative group h-48 cursor-pointer perspective-1000"
-          onClick={() => setFlippedIndex(flippedIndex === index ? null : index)}
-        >
-          <div className={`absolute inset-0 w-full h-full transition-all duration-500 preserve-3d ${flippedIndex === index ? 'rotate-y-180' : ''}`}>
-            {/* Front */}
-            <div className="absolute inset-0 w-full h-full bg-white rounded-2xl shadow-sm border border-gray-100 p-6 flex flex-col items-center justify-center backface-hidden hover:shadow-md transition-shadow">
-              <div className="bg-emerald-100 p-4 rounded-full text-emerald-600 mb-4 group-hover:scale-110 transition-transform">
-                {item.icon}
-              </div>
-              <h3 className="text-xl font-bold text-gray-800 capitalize">{item.word}</h3>
-              <p className="text-gray-400 text-sm mt-1">{item.translation}</p>
-              <span className="absolute bottom-4 text-xs text-emerald-500 font-medium opacity-0 group-hover:opacity-100 transition-opacity">Click para ejemplo</span>
-            </div>
-
-            {/* Back */}
-            <div className="absolute inset-0 w-full h-full bg-emerald-600 rounded-2xl shadow-lg p-6 flex flex-col items-center justify-center backface-hidden rotate-y-180 text-white text-center">
-              <p className="font-medium text-lg leading-relaxed">"{item.example}"</p>
-              <div className="mt-4 flex items-center gap-2 text-emerald-200 text-sm">
-                <CheckCircle className="w-4 h-4" />
-                <span>Usando fewer</span>
-              </div>
-            </div>
-          </div>
-        </div>
-      ))}
-    </div>
-  );
-};
-
-// --- Section 3: Examples ---
-const ExamplesSection = () => {
-  const examples = [
-    { text: "People with active lifestyles spend fewer hours sitting.", noun: "hours" },
-    { text: "Try to do fewer unhealthy habits.", noun: "unhealthy habits" },
-    { text: "This week, I did fewer workouts than last week.", noun: "workouts" },
-    { text: "Walking more means taking fewer breaks.", noun: "breaks" },
+  const tabs: Tab[] = [
+    { id: 'overview', label: 'Overview & Objectives', icon: <BookOpen size={18} /> },
+    { id: 'grammar', label: 'Grammar Rules', icon: <Scale size={18} /> },
+    { id: 'vocabulary', label: 'Vocabulary', icon: <List size={18} /> },
+    { id: 'practice', label: 'Exercises', icon: <Brain size={18} /> },
+    { id: 'summary', label: 'Summary', icon: <CheckCircle size={18} /> },
   ];
 
   return (
-    <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
-       <div className="bg-blue-50 p-4 rounded-xl flex items-start gap-3 text-blue-800 mb-6">
-        <BookOpen className="w-6 h-6 shrink-0 mt-1" />
-        <div>
-          <h3 className="font-bold">Análisis Gramatical</h3>
-          <p className="text-sm">Observa cómo <span className="font-bold bg-emerald-200 px-1 rounded text-emerald-900">fewer</span> siempre precede al <span className="font-bold bg-indigo-200 px-1 rounded text-indigo-900">sustantivo plural</span>.</p>
+    <div className="min-h-screen bg-slate-50 text-slate-800 font-sans selection:bg-emerald-100">
+      {/* Header */}
+      <header className="bg-emerald-700 text-white shadow-lg">
+        <div className="max-w-4xl mx-auto px-4 py-8">
+         
+          <h1 className="text-3xl md:text-4xl font-bold mb-2">Physical Activity and Exercise</h1>
+          <p className="text-emerald-100 text-lg">Mastering the quantifiers: More, Less, and Fewer</p>
+        </div>
+      </header>
+
+      {/* Navigation Tabs */}
+      <div className=" top-0 z-10 bg-white border-b border-slate-200 shadow-sm overflow-x-auto">
+        <div className="max-w-4xl mx-auto px-4 flex space-x-1 md:space-x-2">
+          {tabs.map((tab) => (
+            <button
+              key={tab.id}
+              onClick={() => setActiveTab(tab.id)}
+              className={`
+                flex items-center gap-2 px-4 py-4 text-sm font-medium whitespace-nowrap transition-colors border-b-2
+                ${activeTab === tab.id 
+                  ? 'border-emerald-600 text-emerald-700 bg-emerald-50' 
+                  : 'border-transparent text-slate-500 hover:text-emerald-600 hover:bg-slate-50'}
+              `}
+            >
+              {tab.icon}
+              {tab.label}
+            </button>
+          ))}
         </div>
       </div>
 
-      <div className="grid gap-4">
-        {examples.map((ex, idx) => (
-          <div key={idx} className="bg-white p-6 rounded-xl shadow-sm border border-gray-100 flex flex-col md:flex-row items-center gap-4 hover:border-emerald-200 transition-colors">
-            <div className="bg-gray-100 p-3 rounded-full text-gray-500 font-bold text-lg w-12 h-12 flex items-center justify-center shrink-0">
-              {idx + 1}
-            </div>
-            <div className="text-lg text-gray-700 flex-grow text-center md:text-left">
-              {ex.text.split(' ').map((word, i) => {
-                 const cleanWord = word.replace(/[.,]/g, '');
-                 if (cleanWord.toLowerCase() === 'fewer') {
-                   return <span key={i} className="font-bold text-emerald-600 bg-emerald-50 px-1 rounded mx-0.5">{word}</span>;
-                 }
-                 if (ex.noun.includes(cleanWord.toLowerCase())) {
-                   return <span key={i} className="font-bold text-indigo-600 bg-indigo-50 px-1 rounded mx-0.5 border-b-2 border-indigo-200">{word}</span>;
-                 }
-                 return <span key={i} className="mx-0.5">{word}</span>;
-              })}
-            </div>
-          </div>
-        ))}
-      </div>
+      {/* Main Content Area */}
+      <main className="max-w-4xl mx-auto px-4 py-8 pb-20">
+        <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6 md:p-8 min-h-[500px]">
+          {activeTab === 'overview' && <OverviewSection changeTab={setActiveTab} />}
+          {activeTab === 'grammar' && <GrammarSection />}
+          {activeTab === 'vocabulary' && <VocabularySection />}
+          {activeTab === 'practice' && <PracticeSection />}
+          {activeTab === 'summary' && <SummarySection />}
+        </div>
+      </main>
     </div>
   );
-};
+}
 
-// --- Section 4: Guided Practice ---
+// --- Section Components ---
+
+const OverviewSection = ({ changeTab }: { changeTab: (t: TabId) => void }) => (
+  <div className="space-y-8 animate-fadeIn">
+    <section>
+      <h2 className="text-2xl font-bold text-slate-800 mb-4 flex items-center gap-2">
+        <span className="bg-emerald-100 text-emerald-700 p-2 rounded-lg"><BookOpen size={24} /></span>
+        Lesson Overview
+      </h2>
+      <p className="text-lg text-slate-600 leading-relaxed">
+        This lesson develops the use of the English quantifiers <strong className="text-emerald-700">more</strong>, <strong className="text-emerald-700">less</strong>, and <strong className="text-emerald-700">fewer</strong> in the context of physical activity and exercise. 
+        You will learn how to describe exercise routines, active habits, and sedentary behaviors, and how to compare more active lifestyles with less healthy ones.
+      </p>
+    </section>
+
+    <div className="h-px bg-slate-200" />
+
+    <section>
+      <h2 className="text-2xl font-bold text-slate-800 mb-4 flex items-center gap-2">
+        <span className="bg-blue-100 text-blue-700 p-2 rounded-lg"><Activity size={24} /></span>
+        Learning Objectives
+      </h2>
+      <ul className="grid gap-3">
+        {[
+          "Use 'more' and 'less' to talk about quantities related to physical activity.",
+          "Use 'fewer' with countable activities in an exercise routine.",
+          "Form simple comparative sentences about active and sedentary lifestyles."
+        ].map((obj, i) => (
+          <li key={i} className="flex items-start gap-3 bg-slate-50 p-4 rounded-lg border border-slate-100">
+            <CheckCircle className="text-emerald-500 shrink-0 mt-0.5" size={20} />
+            <span className="text-slate-700">{obj}</span>
+          </li>
+        ))}
+      </ul>
+    </section>
+  </div>
+);
+
+const GrammarSection = () => (
+  <div className="space-y-10 animate-fadeIn">
+    
+    {/* Countable vs Uncountable */}
+    <section>
+      <h2 className="text-xl font-bold text-slate-800 mb-6 border-b pb-2">Countable vs. Uncountable Nouns</h2>
+      <div className="grid md:grid-cols-2 gap-6">
+        <div className="bg-blue-50 p-6 rounded-xl border border-blue-100">
+          <h3 className="font-bold text-blue-800 mb-3 flex items-center gap-2"><Move size={20}/> Uncountable Nouns</h3>
+          <p className="text-sm text-blue-700 mb-4">Activities, time, or concepts not counted as units.</p>
+          <ul className="space-y-2">
+            {['exercise', 'physical activity', 'screen time', 'movement'].map(item => (
+              <li key={item} className="bg-white px-3 py-2 rounded text-slate-700 text-sm shadow-sm border border-blue-100">{item}</li>
+            ))}
+          </ul>
+        </div>
+        <div className="bg-emerald-50 p-6 rounded-xl border border-emerald-100">
+          <h3 className="font-bold text-emerald-800 mb-3 flex items-center gap-2"><List size={20}/> Countable Nouns</h3>
+          <p className="text-sm text-emerald-700 mb-4">Activities or units that can be counted.</p>
+          <ul className="space-y-2">
+            {['rest days', 'hours', 'workouts', 'sedentary activities'].map(item => (
+              <li key={item} className="bg-white px-3 py-2 rounded text-slate-700 text-sm shadow-sm border border-emerald-100">{item}</li>
+            ))}
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    {/* Using More and Less */}
+    <section>
+      <h2 className="text-xl font-bold text-slate-800 mb-6 border-b pb-2">Using "More" and "Less"</h2>
+      <div className="bg-slate-50 p-6 rounded-xl border border-slate-200">
+        <p className="mb-4 text-slate-700">Use with <strong className="text-blue-600">Uncountable Nouns</strong> for general amounts.</p>
+        <div className="grid grid-cols-2 gap-4 mb-6">
+          <div className="text-center p-4 bg-white rounded shadow-sm">
+            <span className="block text-2xl font-bold text-emerald-600 mb-1">+</span>
+            <span className="font-bold text-slate-800">More</span>
+            <span className="block text-xs text-slate-500">Greater amount</span>
+          </div>
+          <div className="text-center p-4 bg-white rounded shadow-sm">
+            <span className="block text-2xl font-bold text-red-500 mb-1">-</span>
+            <span className="font-bold text-slate-800">Less</span>
+            <span className="block text-xs text-slate-500">Smaller amount</span>
+          </div>
+        </div>
+        <div className="space-y-3">
+          <div className="flex gap-4 items-start">
+            <div className="w-1 bg-emerald-500 self-stretch rounded-full"></div>
+            <div>
+              <p className="text-slate-800 font-medium">"Engineers should get <span className="text-emerald-600 font-bold">more physical activity</span>."</p>
+            </div>
+          </div>
+          <div className="flex gap-4 items-start">
+            <div className="w-1 bg-emerald-500 self-stretch rounded-full"></div>
+            <div>
+              <p className="text-slate-800 font-medium">"A healthy routine includes <span className="text-emerald-600 font-bold">less screen time</span>."</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    {/* Using Fewer */}
+    <section>
+      <h2 className="text-xl font-bold text-slate-800 mb-6 border-b pb-2">Using "Fewer"</h2>
+      <div className="bg-slate-50 p-6 rounded-xl border border-slate-200">
+        <p className="mb-4 text-slate-700">Use with <strong className="text-emerald-600">Countable Nouns (Plural)</strong> to indicate a smaller number.</p>
+        
+        <div className="flex items-center gap-4 bg-white p-4 rounded-lg border border-slate-200 mb-6 shadow-sm">
+            <div className="bg-emerald-100 p-3 rounded-full text-emerald-700 font-bold">FEWER</div>
+            <span className="text-slate-400 font-bold text-xl">+</span>
+            <div className="bg-slate-100 px-4 py-2 rounded text-slate-600 font-medium">Rest days / Hours / Workouts</div>
+        </div>
+
+        <div className="space-y-3">
+          <div className="flex gap-4 items-start">
+            <div className="w-1 bg-emerald-500 self-stretch rounded-full"></div>
+            <div>
+              <p className="text-slate-800 font-medium">"An active lifestyle includes <span className="text-emerald-600 font-bold">fewer rest days</span>."</p>
+            </div>
+          </div>
+          <div className="flex gap-4 items-start">
+            <div className="w-1 bg-emerald-500 self-stretch rounded-full"></div>
+            <div>
+              <p className="text-slate-800 font-medium">"Office workers benefit from <span className="text-emerald-600 font-bold">fewer hours</span> sitting."</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    {/* Comparison Model */}
+    <section className="bg-yellow-50 p-6 rounded-xl border border-yellow-200">
+       <h3 className="font-bold text-yellow-800 mb-2 uppercase text-sm tracking-wide">Key Takeaway Pattern</h3>
+       <p className="text-xl font-medium text-slate-800 text-center py-4">
+         "Doing <span className="text-emerald-600">more physical activity</span> and <span className="text-emerald-600">fewer sedentary activities</span> improves health."
+       </p>
+       <div className="flex justify-center gap-8 text-sm text-slate-500">
+         <span>(Uncountable)</span>
+         <span>(Countable)</span>
+       </div>
+    </section>
+  </div>
+);
+
+const VocabularySection = () => (
+  <div className="animate-fadeIn">
+    <h2 className="text-2xl font-bold text-slate-800 mb-6 flex items-center gap-2">
+      <span className="bg-purple-100 text-purple-700 p-2 rounded-lg"><List size={24} /></span>
+      Target Vocabulary
+    </h2>
+    
+    <div className="overflow-hidden border border-slate-200 rounded-xl shadow-sm">
+      <table className="w-full text-left border-collapse">
+        <thead className="bg-slate-50 border-b border-slate-200">
+          <tr>
+            <th className="px-6 py-4 font-bold text-slate-700 w-1/3">Term</th>
+            <th className="px-6 py-4 font-bold text-slate-700">Meaning</th>
+          </tr>
+        </thead>
+        <tbody className="divide-y divide-slate-100">
+          {[
+            { term: 'Routine', def: 'A regular pattern of activities' },
+            { term: 'Sedentary', def: 'Involving little physical movement' },
+            { term: 'Physical activity', def: 'Body movement that uses energy' },
+            { term: 'Screen time', def: 'Time spent using digital devices (phones, computers)' },
+            { term: 'Lifestyle', def: 'The way a person lives daily' },
+          ].map((row, idx) => (
+            <tr key={idx} className="hover:bg-slate-50 transition-colors">
+              <td className="px-6 py-4 font-medium text-emerald-700">{row.term}</td>
+              <td className="px-6 py-4 text-slate-600">{row.def}</td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+  </div>
+);
+
 const PracticeSection = () => {
-  const [answers, setAnswers] = useState<{[key: number]: string}>({});
-  const [feedback, setFeedback] = useState<{[key: number]: boolean | null}>({});
-  const [personalNotes, setPersonalNotes] = useState<string[]>([]);
-  const [currentNote, setCurrentNote] = useState("");
+  const [quizState, setQuizState] = useState<QuizState>({
+    ex1: {},
+    ex2: {},
+    showResults: false
+  });
 
-  const checkAnswer = (id: number, type: string) => {
-    const q = practiceQuestions.find(q => q.id === id);
-    if (!q) return;
-
-    const userAns = answers[id]?.trim().toLowerCase();
-    const correctAns = Array.isArray(q.correctAnswer) 
-      ? q.correctAnswer.map(a => a.toLowerCase()) 
-      : [q.correctAnswer.toLowerCase()];
-
-    // Simple fuzzy check for sentences (removing punctuation)
-    const normalize = (str: string) => str.replace(/[.,]/g, '').trim();
-    
-    const isCorrect = correctAns.some(c => normalize(c) === normalize(userAns || ''));
-    
-    setFeedback(prev => ({ ...prev, [id]: isCorrect }));
+  const handleEx1Select = (id: string, val: string) => {
+    setQuizState(prev => ({ ...prev, ex1: { ...prev.ex1, [id]: val }, showResults: false }));
   };
 
-  const addNote = () => {
-    if (currentNote.trim()) {
-      setPersonalNotes([...personalNotes, currentNote]);
-      setCurrentNote("");
-    }
+  const handleEx2Select = (id: string, val: string) => {
+    setQuizState(prev => ({ ...prev, ex2: { ...prev.ex2, [id]: val }, showResults: false }));
   };
 
-  const getStatusIcon = (status: boolean | null | undefined) => {
-    if (status === true) return <CheckCircle className="w-5 h-5 text-green-500" />;
-    if (status === false) return <XCircle className="w-5 h-5 text-red-500" />;
-    return null;
+  const checkAnswers = () => {
+    setQuizState(prev => ({ ...prev, showResults: true }));
   };
+
+  const reset = () => {
+    setQuizState({ ex1: {}, ex2: {}, showResults: false });
+  };
+
+  // Data for quizzes
+  const ex1Data = [
+    { id: 'q1', word: 'exercise', correct: 'U' },
+    { id: 'q2', word: 'hours', correct: 'C' },
+    { id: 'q3', word: 'screen time', correct: 'U' },
+    { id: 'q4', word: 'rest days', correct: 'C' },
+    { id: 'q5', word: 'physical activity', correct: 'U' },
+  ];
+
+  const ex2Data = [
+    { id: 'q1', sentence: 'A healthy routine includes ___ physical activity.', options: ['more', 'less', 'fewer'], correct: 'more' },
+    { id: 'q2', sentence: 'This program has ___ rest days.', options: ['more', 'less', 'fewer'], correct: 'fewer' },
+    { id: 'q3', sentence: 'Engineers should spend ___ time sitting.', options: ['more', 'less', 'fewer'], correct: 'less' },
+    { id: 'q4', sentence: 'An active lifestyle involves ___ sedentary activities.', options: ['more', 'less', 'fewer'], correct: 'fewer' },
+  ];
 
   return (
-    <div className="space-y-12 animate-in fade-in slide-in-from-bottom-4 duration-500">
+    <div className="space-y-12 animate-fadeIn">
       
-      {/* Part A: Fill in blanks */}
-      <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
-        <h3 className="text-lg font-bold text-gray-800 mb-4 flex items-center gap-2">
-          <span className="bg-emerald-100 text-emerald-700 px-2 py-1 rounded text-sm">A</span>
-          Fill in the blanks (fewer + noun)
+      {/* Exercise 1 */}
+      <section>
+        <h3 className="text-lg font-bold text-slate-800 mb-4 flex items-center gap-2">
+          <span className="bg-slate-200 text-slate-700 w-8 h-8 rounded-full flex items-center justify-center text-sm">1</span>
+          Classify the Nouns
+        </h3>
+        <p className="text-sm text-slate-500 mb-4">Mark each noun as Countable (C) or Uncountable (U).</p>
+        
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
+          {ex1Data.map((item) => {
+            const isCorrect = quizState.ex1[item.id] === item.correct;
+            const isWrong = quizState.showResults && !isCorrect;
+            
+            return (
+              <div key={item.id} className={`p-4 rounded-lg border ${isWrong ? 'border-red-300 bg-red-50' : 'border-slate-200 bg-white'} shadow-sm`}>
+                <p className="font-medium text-center mb-3 capitalize">{item.word}</p>
+                <div className="flex justify-center gap-2">
+                  {['C', 'U'].map((opt) => (
+                    <button
+                      key={opt}
+                      onClick={() => handleEx1Select(item.id, opt)}
+                      className={`
+                        w-8 h-8 rounded-full font-bold text-xs transition-colors
+                        ${quizState.ex1[item.id] === opt 
+                          ? 'bg-emerald-600 text-white' 
+                          : 'bg-slate-100 text-slate-500 hover:bg-slate-200'}
+                      `}
+                    >
+                      {opt}
+                    </button>
+                  ))}
+                </div>
+                {quizState.showResults && (
+                  <div className="text-center mt-2">
+                     {isCorrect ? <Check size={16} className="mx-auto text-emerald-500"/> : <span className="text-xs text-red-500 font-bold">Ans: {item.correct}</span>}
+                  </div>
+                )}
+              </div>
+            );
+          })}
+        </div>
+      </section>
+
+      {/* Exercise 2 */}
+      <section>
+        <h3 className="text-lg font-bold text-slate-800 mb-4 flex items-center gap-2">
+          <span className="bg-slate-200 text-slate-700 w-8 h-8 rounded-full flex items-center justify-center text-sm">2</span>
+          Choose the Correct Quantifier
         </h3>
         <div className="space-y-4">
-          {practiceQuestions.filter(q => q.type === 'fill').map(q => (
-            <div key={q.id} className="flex flex-col sm:flex-row sm:items-center gap-3 bg-gray-50 p-3 rounded-lg">
-              <div className="flex-grow font-medium text-gray-700">
-                {q.question.split('_____').map((part, i, arr) => (
-                  <React.Fragment key={i}>
-                    {part}
-                    {i < arr.length - 1 && (
-                      <input 
-                        type="text" 
-                        className={`mx-2 border-b-2 bg-transparent focus:outline-none w-24 text-center ${
-                            feedback[q.id] === true ? 'border-green-500 text-green-700' : 
-                            feedback[q.id] === false ? 'border-red-300 text-red-700' : 'border-gray-300 focus:border-emerald-500'
-                        }`}
-                        placeholder="..."
-                        value={answers[q.id] || ''}
-                        onChange={(e) => setAnswers({...answers, [q.id]: e.target.value})}
-                        onBlur={() => checkAnswer(q.id, 'fill')}
-                      />
-                    )}
-                  </React.Fragment>
-                ))}
-              </div>
-              <div className="w-6">{getStatusIcon(feedback[q.id])}</div>
-            </div>
-          ))}
-        </div>
-      </div>
-
-      {/* Part B: Multiple Choice */}
-      <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
-        <h3 className="text-lg font-bold text-gray-800 mb-4 flex items-center gap-2">
-          <span className="bg-emerald-100 text-emerald-700 px-2 py-1 rounded text-sm">B</span>
-          Choose the correct option
-        </h3>
-        <div className="grid md:grid-cols-3 gap-4">
-          {practiceQuestions.filter(q => q.type === 'choice').map(q => (
-            <div key={q.id} className="bg-gray-50 p-4 rounded-xl">
-              <p className="text-gray-500 text-sm mb-2">{q.question}</p>
-              <div className="space-y-2">
-                {q.options?.map(opt => (
-                  <button
-                    key={opt}
-                    onClick={() => {
-                        setAnswers({...answers, [q.id]: opt});
-                        // Immediate check for multiple choice
-                        const isCorrect = opt === q.correctAnswer;
-                        setFeedback({...feedback, [q.id]: isCorrect});
-                    }}
-                    className={`w-full p-2 rounded text-left transition-all ${
-                      answers[q.id] === opt 
-                        ? (feedback[q.id] ? 'bg-green-100 border-green-300 text-green-800' : 'bg-red-100 border-red-300 text-red-800')
-                        : 'bg-white hover:bg-gray-100 border border-gray-200'
-                    } border`}
+          {ex2Data.map((item) => {
+             const isCorrect = quizState.ex2[item.id] === item.correct;
+             
+             return (
+              <div key={item.id} className="flex flex-col md:flex-row md:items-center gap-4 p-4 bg-slate-50 rounded-lg">
+                <div className="flex-grow text-lg text-slate-700">
+                  {item.sentence.split('___')[0]}
+                  <select 
+                    className={`
+                      mx-2 px-2 py-1 rounded border font-medium focus:ring-2 focus:ring-emerald-500 outline-none
+                      ${quizState.showResults 
+                        ? (isCorrect ? 'border-emerald-500 text-emerald-700 bg-emerald-50' : 'border-red-500 text-red-700 bg-red-50')
+                        : 'border-slate-300'}
+                    `}
+                    value={quizState.ex2[item.id] || ''}
+                    onChange={(e) => handleEx2Select(item.id, e.target.value)}
                   >
-                    {opt}
-                  </button>
-                ))}
+                    <option value="" disabled>...</option>
+                    {item.options.map(opt => <option key={opt} value={opt}>{opt}</option>)}
+                  </select>
+                  {item.sentence.split('___')[1]}
+                </div>
+                {quizState.showResults && (
+                  <div className="shrink-0">
+                    {isCorrect 
+                      ? <span className="flex items-center text-emerald-600 text-sm font-bold gap-1"><Check size={16}/> Correct</span> 
+                      : <span className="flex items-center text-red-500 text-sm font-bold gap-1"><X size={16}/> Correct: {item.correct}</span>
+                    }
+                  </div>
+                )}
               </div>
-            </div>
-          ))}
+          )})}
         </div>
+      </section>
+
+      {/* Actions */}
+      <div className="flex gap-4 pt-4 border-t">
+        <button 
+          onClick={checkAnswers}
+          className="bg-emerald-600 hover:bg-emerald-700 text-white px-6 py-2 rounded-lg font-bold transition-colors shadow-sm"
+        >
+          Check Answers
+        </button>
+        <button 
+          onClick={reset}
+          className="text-slate-500 hover:text-slate-700 px-6 py-2 rounded-lg font-medium"
+        >
+          Reset
+        </button>
       </div>
 
-      {/* Part C: Transformation */}
-      <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
-        <h3 className="text-lg font-bold text-gray-800 mb-4 flex items-center gap-2">
-          <span className="bg-emerald-100 text-emerald-700 px-2 py-1 rounded text-sm">C</span>
-          Rewrite the sentence
+      {/* Writing Prompt */}
+      <section className="bg-indigo-50 p-6 rounded-xl border border-indigo-100 mt-8">
+        <h3 className="text-lg font-bold text-indigo-900 mb-2 flex items-center gap-2">
+          <span className="bg-indigo-200 text-indigo-800 w-8 h-8 rounded-full flex items-center justify-center text-sm">3</span>
+          Writing Practice
         </h3>
-        <div className="space-y-6">
-          {practiceQuestions.filter(q => q.type === 'transform').map(q => (
-            <div key={q.id}>
-              <p className="text-gray-600 mb-2 italic">"{q.question}"</p>
-              <div className="flex gap-2">
-                <ArrowRight className="text-gray-400 mt-3 w-4 h-4" />
-                <div className="w-full">
-                    <input 
-                        type="text" 
-                        className={`w-full p-2 border-2 rounded-lg focus:outline-none transition-colors ${
-                            feedback[q.id] === true ? 'border-green-400 bg-green-50' :
-                            feedback[q.id] === false ? 'border-red-300 bg-red-50' :
-                            'border-gray-200 focus:border-emerald-500'
-                        }`}
-                        placeholder="Type the full sentence here..."
-                        value={answers[q.id] || ''}
-                        onChange={(e) => setAnswers({...answers, [q.id]: e.target.value})}
-                    />
-                    <div className="flex justify-between items-center mt-2">
-                        <span className="text-xs text-gray-400">{q.hint}</span>
-                        <button 
-                            onClick={() => checkAnswer(q.id, 'transform')}
-                            className="bg-emerald-600 text-white text-xs px-3 py-1 rounded hover:bg-emerald-700"
-                        >
-                            Check
-                        </button>
-                    </div>
-                </div>
-              </div>
-            </div>
-          ))}
-        </div>
-      </div>
-
-      {/* Part D: Personal Production */}
-      <div className="bg-gradient-to-br from-indigo-50 to-purple-50 p-6 rounded-2xl shadow-sm border border-indigo-100">
-        <h3 className="text-lg font-bold text-indigo-800 mb-4 flex items-center gap-2">
-          <span className="bg-indigo-200 text-indigo-700 px-2 py-1 rounded text-sm">D</span>
-          Personal Production Journal
-        </h3>
-        <p className="text-indigo-600 mb-4 text-sm">Escribe 3 frases sobre tu estilo de vida usando <strong>fewer</strong>.</p>
-        
-        <div className="flex gap-2 mb-6">
-            <input 
-                value={currentNote}
-                onChange={(e) => setCurrentNote(e.target.value)}
-                placeholder="E.g., I want to spend fewer hours checking emails..."
-                className="flex-grow p-3 rounded-xl border border-indigo-200 focus:outline-none focus:ring-2 focus:ring-indigo-400"
-                onKeyDown={(e) => e.key === 'Enter' && addNote()}
-            />
-            <button 
-                onClick={addNote}
-                className="bg-indigo-600 text-white p-3 rounded-xl hover:bg-indigo-700 transition-colors"
-            >
-                <Edit3 className="w-5 h-5" />
-            </button>
-        </div>
-
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
-            {personalNotes.length === 0 && (
-                <div className="text-center text-indigo-300 col-span-full py-8 border-2 border-dashed border-indigo-200 rounded-xl">
-                    Tus frases aparecerán aquí...
-                </div>
-            )}
-            {personalNotes.map((note, i) => (
-                <div key={i} className="bg-yellow-100 p-4 rounded-xl shadow-md rotate-1 transform transition-transform hover:-rotate-1 text-gray-700 font-handwriting">
-                    <span className="text-2xl text-yellow-500 absolute -top-2 -left-2">"</span>
-                    {note}
-                </div>
-            ))}
-        </div>
-      </div>
+        <p className="text-indigo-700 mb-4 text-sm">Write a sentence comparing an active lifestyle and a sedentary one.</p>
+        <textarea 
+          placeholder="E.g., An active lifestyle has more..." 
+          className="w-full p-3 rounded border border-indigo-200 focus:ring-2 focus:ring-indigo-500 outline-none h-24 mb-4"
+        />
+        <details>
+            <summary className="text-sm font-bold text-indigo-600 cursor-pointer hover:text-indigo-800">Show Model Answer</summary>
+            <p className="mt-2 text-indigo-800 bg-indigo-100 p-3 rounded italic">
+              "An active lifestyle has <span className="font-bold">more</span> physical activity and <span className="font-bold">fewer</span> rest days than a sedentary one."
+            </p>
+        </details>
+      </section>
 
     </div>
   );
-};
+}
 
-// --- Main App ---
-
-const App = () => {
-  const [activeTab, setActiveTab] = useState<Tab>('rule');
-
-  const renderContent = () => {
-    switch (activeTab) {
-      case 'rule': return <CoreRuleSection />;
-      case 'vocabulary': return <VocabularySection />;
-      case 'examples': return <ExamplesSection />;
-      case 'practice': return <PracticeSection />;
-      default: return <CoreRuleSection />;
-    }
-  };
-
-  return (
-    <div className="min-h-screen bg-gray-50 font-sans text-gray-800">
-      <div className="max-w-4xl mx-auto pb-12">
-        <Header />
-        
-        {/* Navigation */}
-        <div className="px-4 sm:px-8">
-          <div className="flex overflow-x-auto gap-1 border-b border-gray-200 mb-8 scrollbar-hide">
-            <TabButton 
-              active={activeTab === 'rule'} 
-              label="1. Regla Central" 
-              onClick={() => setActiveTab('rule')}
-              icon={<Lightbulb className="w-4 h-4" />}
-            />
-            <TabButton 
-              active={activeTab === 'vocabulary'} 
-              label="2. Vocabulario" 
-              onClick={() => setActiveTab('vocabulary')}
-              icon={<BookOpen className="w-4 h-4" />}
-            />
-            <TabButton 
-              active={activeTab === 'examples'} 
-              label="3. Ejemplos" 
-              onClick={() => setActiveTab('examples')}
-              icon={<CheckCircle className="w-4 h-4" />}
-            />
-            <TabButton 
-              active={activeTab === 'practice'} 
-              label="4. Práctica" 
-              onClick={() => setActiveTab('practice')}
-              icon={<Edit3 className="w-4 h-4" />}
-            />
-          </div>
-
-          {/* Dynamic Content */}
-          <main className="min-h-[400px]">
-            {renderContent()}
-          </main>
-          
-          <div className="mt-12 text-center text-gray-400 text-sm">
-            Exercise Module: Fewer + Countable Nouns
-          </div>
-        </div>
-      </div>
+const SummarySection = () => (
+  <div className="text-center max-w-2xl mx-auto space-y-8 animate-fadeIn py-8">
+    <div className="inline-block bg-emerald-100 p-4 rounded-full text-emerald-600 mb-4">
+      <CheckCircle size={48} />
     </div>
-  );
-};
-
-export default App;
+    <h2 className="text-3xl font-bold text-slate-800">Lesson Complete!</h2>
+    <p className="text-lg text-slate-600 leading-relaxed">
+      You have learned how to describe and compare physical activity habits using <strong className="text-emerald-700">more, less, and fewer</strong>. 
+      Remember to check if your noun is <em>countable</em> (fewer) or <em>uncountable</em> (less) before speaking.
+    </p>
+    <div className="bg-slate-50 p-6 rounded-xl text-left border border-slate-200 shadow-sm">
+      <h3 className="font-bold text-slate-700 mb-2 border-b pb-2">Quick Recap</h3>
+      <ul className="space-y-2 text-slate-600">
+        <li className="flex items-center gap-2"><div className="w-2 h-2 bg-emerald-500 rounded-full"/> Use <b>More</b> for greater quantity (both types).</li>
+        <li className="flex items-center gap-2"><div className="w-2 h-2 bg-emerald-500 rounded-full"/> Use <b>Less</b> for smaller amounts of <u>uncountable</u> nouns (time, exercise).</li>
+        <li className="flex items-center gap-2"><div className="w-2 h-2 bg-emerald-500 rounded-full"/> Use <b>Fewer</b> for smaller numbers of <u>countable</u> nouns (days, hours).</li>
+      </ul>
+    </div>
+  </div>
+);

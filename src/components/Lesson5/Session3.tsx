@@ -1,98 +1,99 @@
-import React, { useState, useEffect } from 'react';
-import { 
-  BookOpen, 
-  coffee, 
-  Car, 
-  Home, 
-  Clock, 
-  CheckCircle, 
-  XCircle, 
-  ChevronRight, 
-  Edit3, 
-  HelpCircle, 
-  MousePointer, 
-  AlertTriangle,
-  Send,
-  RefreshCw,
-  Coffee,
-  Footprints
-} from 'lucide-react';
+import React, { useState } from 'react';
+import { BookOpen, CheckCircle, Clock, ArrowRight, Brain, PenTool, Layout, Check, X, ChevronRight, RefreshCw } from 'lucide-react';
 
 // --- Types ---
+type Tab = 'intro' | 'theory' | 'practice' | 'summary';
 
-type TabType = 'theory' | 'examples' | 'practice';
-
-interface QuizQuestion {
-  id: number;
-  type: 'fill' | 'transform' | 'choice';
-  question: string;
-  options?: string[]; // For multiple choice
-  correctAnswer: string | string[]; // Can be array for flexible text answers
-  userAnswer?: string;
-  isCorrect?: boolean;
+interface QuizState {
+  ex1_1: string;
+  ex1_2: string;
+  ex1_3: string;
+  ex2_1: string;
+  ex2_2: string;
+  ex2_3: string;
+  ex3_text: string;
 }
 
 // --- Components ---
 
 const App: React.FC = () => {
-  const [activeTab, setActiveTab] = useState<TabType>('theory');
+  const [activeTab, setActiveTab] = useState<Tab>('intro');
+  const [quizState, setQuizState] = useState<QuizState>({
+    ex1_1: '', ex1_2: '', ex1_3: '',
+    ex2_1: '', ex2_2: '', ex2_3: '',
+    ex3_text: ''
+  });
+  const [showResults, setShowResults] = useState(false);
 
+  // Navigation Helper
+  const handleTabChange = (tab: Tab) => {
+    setActiveTab(tab);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
+  // Content Rendering
   return (
-    <div className="min-h-screen bg-slate-50 text-slate-800 font-sans selection:bg-indigo-100">
+    <div className="min-h-screen bg-slate-50 text-slate-800 font-sans">
       {/* Header */}
-      <header className="bg-gradient-to-r from-indigo-600 to-purple-700 text-white shadow-lg">
-        <div className="max-w-4xl mx-auto px-4 py-8">
-          <div className="flex items-center gap-3 mb-2">
-            <span className="bg-yellow-400 text-indigo-900 text-xs font-bold px-2 py-1 rounded uppercase tracking-wider">
-              Section 3
-            </span>
-            <span className="text-indigo-200 text-sm font-medium tracking-wide">English Grammar</span>
+      <header className="bg-indigo-700 text-white p-6 shadow-lg">
+        <div className="max-w-4xl mx-auto">
+          <div className="flex items-center gap-2 text-indigo-200 text-sm font-semibold uppercase tracking-wider mb-2">
+            <Clock size={16} /> Lección Única • American English
           </div>
-          <h1 className="text-3xl md:text-4xl font-bold mb-2">Daily Dilemmas: Would Rather</h1>
-          <p className="text-indigo-100 max-w-xl">
-            Expressing immediate choices, preferences, and contrasts in everyday situations.
-          </p>
+          <h1 className="text-3xl font-bold mb-2">Elecciones Inmediatas en Situaciones Estresantes</h1>
+          <p className="text-indigo-100 opacity-90">Tomar decisiones rápidas con "Would rather"</p>
         </div>
       </header>
 
-      {/* Navigation */}
-      <div className="sticky top-0 z-20 bg-white shadow-sm border-b border-slate-200">
-        <div className="max-w-4xl mx-auto px-4">
-          <nav className="flex space-x-1 md:space-x-4 overflow-x-auto pb-1 pt-2 md:pb-0 md:pt-0 scrollbar-hide">
-            <TabButton 
-              isActive={activeTab === 'theory'} 
-              onClick={() => setActiveTab('theory')} 
-              icon={<BookOpen size={18} />} 
-              label="1. Core Rules" 
-            />
-            <TabButton 
-              isActive={activeTab === 'examples'} 
-              onClick={() => setActiveTab('examples')} 
-              icon={<MousePointer size={18} />} 
-              label="2. Examples" 
-            />
-            <TabButton 
-              isActive={activeTab === 'practice'} 
-              onClick={() => setActiveTab('practice')} 
-              icon={<Edit3 size={18} />} 
-              label="3. Practice" 
-            />
-          </nav>
+      {/* Tabs Navigation */}
+      <div className="sticky top-0 z-10 bg-white shadow-md border-b border-slate-200">
+        <div className="max-w-4xl mx-auto flex overflow-x-auto no-scrollbar">
+          <TabButton 
+            active={activeTab === 'intro'} 
+            onClick={() => handleTabChange('intro')} 
+            icon={<Layout size={18} />} 
+            label="Introducción" 
+          />
+          <TabButton 
+            active={activeTab === 'theory'} 
+            onClick={() => handleTabChange('theory')} 
+            icon={<BookOpen size={18} />} 
+            label="Lección" 
+          />
+          <TabButton 
+            active={activeTab === 'practice'} 
+            onClick={() => handleTabChange('practice')} 
+            icon={<PenTool size={18} />} 
+            label="Ejercicios" 
+          />
+          <TabButton 
+            active={activeTab === 'summary'} 
+            onClick={() => handleTabChange('summary')} 
+            icon={<Brain size={18} />} 
+            label="Resumen" 
+          />
         </div>
       </div>
 
-      {/* Content Area */}
-      <main className="max-w-4xl mx-auto px-4 py-8 pb-20">
-        <div className="transition-all duration-300 ease-in-out">
-          {activeTab === 'theory' && <TheorySection />}
-          {activeTab === 'examples' && <ExamplesSection />}
-          {activeTab === 'practice' && <PracticeSection />}
-        </div>
+      {/* Main Content Area */}
+      <main className="max-w-4xl mx-auto p-6 min-h-[600px]">
+        {activeTab === 'intro' && <IntroSection onNext={() => handleTabChange('theory')} />}
+        {activeTab === 'theory' && <TheorySection onNext={() => handleTabChange('practice')} />}
+        {activeTab === 'practice' && (
+          <PracticeSection 
+            quizState={quizState} 
+            setQuizState={setQuizState} 
+            showResults={showResults} 
+            setShowResults={setShowResults}
+            onNext={() => handleTabChange('summary')}
+          />
+        )}
+        {activeTab === 'summary' && <SummarySection />}
       </main>
-      
+
       {/* Footer */}
-      <footer className="fixed bottom-0 w-full bg-white border-t border-slate-200 py-3 text-center text-slate-400 text-sm hidden md:block">
-        Daily Dilemmas Module • React & TypeScript Learning Interface
+      <footer className="bg-slate-900 text-slate-400 py-8 text-center text-sm">
+        <p>© 2024 English Learning Module. Designed for educational purposes.</p>
       </footer>
     </div>
   );
@@ -100,404 +101,429 @@ const App: React.FC = () => {
 
 // --- Sub-Components ---
 
-const TabButton: React.FC<{ isActive: boolean; onClick: () => void; icon: React.ReactNode; label: string }> = ({ isActive, onClick, icon, label }) => (
+const TabButton: React.FC<{ active: boolean; onClick: () => void; icon: React.ReactNode; label: string }> = ({ active, onClick, icon, label }) => (
   <button
     onClick={onClick}
-    className={`flex items-center gap-2 px-4 py-4 text-sm font-medium border-b-2 transition-colors whitespace-nowrap
-      ${isActive 
-        ? 'border-indigo-600 text-indigo-700 bg-indigo-50/50' 
-        : 'border-transparent text-slate-500 hover:text-slate-700 hover:border-slate-300'
+    className={`flex items-center gap-2 px-6 py-4 font-medium transition-colors whitespace-nowrap
+      ${active 
+        ? 'text-indigo-700 border-b-2 border-indigo-700 bg-indigo-50/50' 
+        : 'text-slate-500 hover:text-indigo-600 hover:bg-slate-50'
       }`}
   >
     {icon}
-    {label}
+    <span>{label}</span>
   </button>
 );
 
-// --- 1. Theory Section ---
+const IntroSection: React.FC<{ onNext: () => void }> = ({ onNext }) => (
+  <div className="animate-fade-in space-y-8">
+    <div className="bg-white p-8 rounded-2xl shadow-sm border border-slate-200">
+      <h2 className="text-2xl font-bold text-slate-900 mb-4 flex items-center gap-2">
+        <div className="p-2 bg-indigo-100 text-indigo-700 rounded-lg"><Brain size={24} /></div>
+        Objetivo de la lección
+      </h2>
+      <p className="text-lg text-slate-700 leading-relaxed">
+        Aprender a usar la estructura <strong className="text-indigo-700 bg-indigo-50 px-1 rounded">would rather</strong> para expresar elecciones inmediatas y directas en inglés, especialmente en situaciones de cansancio, presión de tiempo o estrés, comparando acciones de forma clara.
+      </p>
+    </div>
 
-const TheorySection: React.FC = () => {
-  return (
-    <div className="space-y-8 animate-fadeIn">
-      {/* Introduction Card */}
-      <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6 md:p-8">
-        <div className="flex items-start gap-4">
-          <div className="p-3 bg-indigo-100 rounded-lg text-indigo-600 hidden md:block">
-            <HelpCircle size={24} />
-          </div>
-          <div>
-            <h2 className="text-xl font-bold text-slate-800 mb-3">When to use "Would Rather"?</h2>
-            <p className="text-slate-600 leading-relaxed mb-4">
-              It is used to express <strong className="text-indigo-600">immediate preferences</strong> or direct choices between two options. It often implies a contrast and a quick decision.
-            </p>
-            <div className="flex gap-2">
-              <span className="px-3 py-1 bg-green-100 text-green-700 rounded-full text-xs font-semibold">Immediate Choice</span>
-              <span className="px-3 py-1 bg-blue-100 text-blue-700 rounded-full text-xs font-semibold">Preference</span>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* Structures Grid */}
-      <div className="grid md:grid-cols-2 gap-6">
-        <StructureCard 
-          title="Basic Preference" 
-          structure="Would rather + base verb"
-          example="I'd rather stay home."
-          icon={<Home size={20} />}
-        />
-        <StructureCard 
-          title="Comparison" 
-          structure="Would rather + verb + than + verb"
-          example="She'd rather walk than drive."
-          icon={<Footprints size={20} />}
-        />
-        <StructureCard 
-          title="Noun Preference" 
-          structure="Would rather + noun"
-          example="I'd rather coffee."
-          note="(Informal context)"
-          icon={<Coffee size={20} />}
-        />
-        <StructureCard 
-          title="Different Subject" 
-          structure="Would rather + subject + past simple"
-          example="I'd rather you called later."
-          highlight="Past Simple usage!"
-          icon={<Clock size={20} />}
-        />
-      </div>
-
-      {/* The Golden Rule Alert */}
-      <div className="bg-amber-50 border-l-4 border-amber-400 p-6 rounded-r-lg shadow-sm">
-        <div className="flex items-start gap-3">
-          <AlertTriangle className="text-amber-500 flex-shrink-0 mt-1" />
-          <div>
-            <h3 className="text-amber-800 font-bold text-lg mb-2">The Golden Rule 📌</h3>
-            <p className="text-amber-700 mb-3">
-              After <strong>would rather</strong>, the verb does <u>not</u> take "to".
-            </p>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 bg-white/60 p-4 rounded-lg">
-              <div className="flex items-center gap-2 text-red-500 font-medium">
-                <XCircle size={18} /> I'd rather <span className="underline decoration-wavy">to go</span>
-              </div>
-              <div className="flex items-center gap-2 text-green-600 font-bold">
-                <CheckCircle size={18} /> I'd rather go
-              </div>
-            </div>
-          </div>
-        </div>
+    <div className="bg-orange-50 p-8 rounded-2xl border border-orange-100">
+      <h3 className="text-xl font-bold text-orange-800 mb-3">Contexto: Presión y Cansancio</h3>
+      <p className="text-slate-700 mb-4">
+        En momentos de cansancio o presión, las personas suelen decidir qué hacer en ese instante. En inglés, una estructura muy común para expresar este tipo de elección inmediata es <em>would rather</em>.
+      </p>
+      <div className="flex items-start gap-3 bg-white/50 p-4 rounded-lg">
+        <div className="min-w-[4px] h-full bg-orange-400 rounded-full"></div>
+        <p className="text-sm text-slate-600 italic">
+          "Esta forma es directa y se usa cuando una acción es claramente preferida sobre otra en el momento."
+        </p>
       </div>
     </div>
-  );
-};
 
-const StructureCard: React.FC<{ title: string; structure: string; example: string; note?: string; highlight?: string; icon: React.ReactNode }> = ({ title, structure, example, note, highlight, icon }) => (
-  <div className="bg-white p-6 rounded-xl shadow-sm border border-slate-200 hover:shadow-md transition-shadow group">
-    <div className="flex justify-between items-start mb-4">
-      <h3 className="font-bold text-slate-700">{title}</h3>
-      <span className="text-indigo-400 group-hover:text-indigo-600 transition-colors">{icon}</span>
+    <div className="flex justify-end">
+      <button onClick={onNext} className="btn-primary">
+        Comenzar Lección <ArrowRight size={20} />
+      </button>
     </div>
-    <div className="bg-slate-100 p-3 rounded-lg text-sm font-mono text-slate-600 mb-4 border border-slate-200">
-      {structure}
-    </div>
-    <p className="text-lg text-slate-800 font-medium border-l-4 border-indigo-500 pl-3">
-      {example}
-    </p>
-    {(note || highlight) && (
-      <div className="mt-3 text-xs flex gap-2">
-        {note && <span className="text-slate-400 italic">{note}</span>}
-        {highlight && <span className="text-amber-600 font-bold bg-amber-50 px-2 py-0.5 rounded">{highlight}</span>}
-      </div>
-    )}
   </div>
 );
 
-// --- 2. Examples Section ---
+const TheorySection: React.FC<{ onNext: () => void }> = ({ onNext }) => (
+  <div className="animate-fade-in space-y-10">
+    
+    {/* Section 1 */}
+    <section>
+      <SectionHeader number="1" title="¿Qué significa would rather?" />
+      <div className="prose text-slate-600 max-w-none">
+        <p className="mb-4">
+          <span className="font-bold text-indigo-700">Would rather</span> se usa para expresar una preferencia inmediata entre acciones.
+        </p>
+        <div className="grid md:grid-cols-3 gap-4 mb-6">
+          <ComparisonCard title="would like" desc="Deseo general" icon="🌟" />
+          <ComparisonCard title="would prefer" desc="Preferencia pensada" icon="🤔" />
+          <ComparisonCard title="would rather" desc="Decisión rápida del momento" icon="⚡" highlight />
+        </div>
+        <ExampleBox sentence="I would rather rest." explanation="Aquí, la persona expresa lo que prefiere hacer AHORA MISMO." />
+      </div>
+    </section>
 
-const ExamplesSection: React.FC = () => {
-  const examples = [
-    { text: "I'd rather eat now.", icon: <Clock size={32} />, label: "Timing", context: "You are hungry immediately." },
-    { text: "He'd rather coffee than tea.", icon: <Coffee size={32} />, label: "Preference", context: "Choosing a drink." },
-    { text: "She'd rather walk than take a taxi.", icon: <Footprints size={32} />, label: "Mode of Transport", context: "Exercise over convenience." },
-    { text: "We'd rather you stayed here.", icon: <Home size={32} />, label: "Desire for others", context: "Polite request using Past Simple." },
-  ];
+    <hr className="border-slate-200" />
+
+    {/* Section 2 */}
+    <section>
+      <SectionHeader number="2" title="Uso de would rather + base verb" />
+      <div className="bg-slate-100 p-4 rounded-lg border-l-4 border-indigo-500 mb-6">
+        <p className="font-mono text-lg text-indigo-900">
+          would rather + <span className="font-bold bg-yellow-200 px-1">base verb</span>
+        </p>
+        <p className="text-sm text-slate-500 mt-1">* El verbo va siempre sin "to".</p>
+      </div>
+      <ul className="space-y-2">
+        <ListItem text="I would rather sleep." />
+        <ListItem text="He would rather walk." />
+        <ListItem text="They would rather stay home." />
+      </ul>
+    </section>
+
+    <hr className="border-slate-200" />
+
+    {/* Section 3 */}
+    <section>
+      <SectionHeader number="3" title="Comparar acciones (than)" />
+      <p className="text-slate-600 mb-4">Para comparar dos acciones, se usa <strong>than</strong> entre ellas.</p>
+      
+      <div className="bg-slate-100 p-4 rounded-lg border-l-4 border-indigo-500 mb-6 overflow-x-auto">
+        <p className="font-mono text-lg text-indigo-900 whitespace-nowrap">
+          would rather + <span className="font-bold">verb 1</span> + <span className="text-red-500 font-bold">than</span> + <span className="font-bold">verb 2</span>
+        </p>
+      </div>
+
+      <div className="grid gap-3">
+        <ExampleCard en="I would rather sleep than watch TV." es="Prefiero dormir que ver TV." />
+        <ExampleCard en="He would rather walk than drive." es="Prefiere caminar que conducir." />
+        <ExampleCard en="She would rather rest than study late." es="Prefiere descansar que estudiar tarde." />
+      </div>
+    </section>
+
+    <hr className="border-slate-200" />
+
+    {/* Section 4 */}
+    <section>
+      <SectionHeader number="4" title="Contextos de estrés inmediato" />
+      <p className="text-slate-600 mb-4">
+        Estas expresiones reflejan decisiones prácticas en momentos de presión o agotamiento.
+      </p>
+      <div className="bg-red-50 border border-red-100 rounded-xl p-5 space-y-4">
+        <StressExample 
+          situation="After a long day..." 
+          response="I would rather relax." 
+        />
+        <StressExample 
+          situation="Under pressure..." 
+          response="He would rather finish quickly." 
+        />
+        <StressExample 
+          situation="When I am tired..." 
+          response="I would rather sleep than go out." 
+        />
+      </div>
+    </section>
+
+    <div className="flex justify-end pt-4">
+      <button onClick={onNext} className="btn-primary">
+        Ir a los Ejercicios <ArrowRight size={20} />
+      </button>
+    </div>
+  </div>
+);
+
+const PracticeSection: React.FC<{ 
+  quizState: QuizState; 
+  setQuizState: React.Dispatch<React.SetStateAction<QuizState>>;
+  showResults: boolean;
+  setShowResults: (v: boolean) => void;
+  onNext: () => void;
+}> = ({ quizState, setQuizState, showResults, setShowResults, onNext }) => {
+
+  const checkAnswer = (userAns: string, correct: string) => {
+    if (!showResults) return 'neutral';
+    return userAns.toLowerCase().trim() === correct.toLowerCase() ? 'correct' : 'incorrect';
+  };
+
+  const handleInputChange = (field: keyof QuizState, value: string) => {
+    setQuizState(prev => ({ ...prev, [field]: value }));
+    if (showResults) setShowResults(false); // Reset feedback on edit
+  };
 
   return (
-    <div className="space-y-8 animate-fadeIn">
-      <h2 className="text-2xl font-bold text-slate-800">Everyday Contexts</h2>
-      <div className="grid md:grid-cols-2 gap-6">
-        {examples.map((ex, idx) => (
-          <div key={idx} className="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden flex flex-col hover:border-indigo-300 transition-colors">
-            <div className="h-2 bg-indigo-500 w-full"></div>
-            <div className="p-6 flex flex-col h-full">
-              <div className="flex items-center gap-4 mb-6">
-                <div className="w-12 h-12 rounded-full bg-indigo-50 flex items-center justify-center text-indigo-600 shrink-0">
-                  {ex.icon}
-                </div>
-                <div>
-                  <h3 className="text-sm font-bold text-slate-400 uppercase tracking-wider">{ex.label}</h3>
-                  <p className="text-xs text-slate-500 italic">{ex.context}</p>
-                </div>
-              </div>
-              <p className="text-2xl font-medium text-slate-800 mt-auto">
-                "{ex.text}"
-              </p>
-            </div>
-          </div>
-        ))}
+    <div className="animate-fade-in space-y-8 pb-12">
+      <div className="bg-indigo-50 p-4 rounded-lg border border-indigo-100">
+        <h2 className="text-xl font-bold text-indigo-900">Zona de Práctica</h2>
+        <p className="text-indigo-700">Pon a prueba lo aprendido sobre decisiones inmediatas.</p>
       </div>
-      
-      {/* Interactive visualizer */}
-      <div className="bg-indigo-900 rounded-xl p-8 text-white mt-8 text-center relative overflow-hidden">
-        <div className="absolute top-0 left-0 w-full h-full opacity-10 pointer-events-none">
-          <svg width="100%" height="100%">
-            <pattern id="grid" width="40" height="40" patternUnits="userSpaceOnUse">
-              <path d="M 40 0 L 0 0 0 40" fill="none" stroke="white" strokeWidth="1"/>
-            </pattern>
-            <rect width="100%" height="100%" fill="url(#grid)" />
-          </svg>
+
+      {/* Exercise 1 */}
+      <div className="bg-white p-6 rounded-xl shadow-sm border border-slate-200">
+        <h3 className="font-bold text-lg mb-4 flex items-center gap-2">
+          <span className="bg-slate-800 text-white rounded-full w-6 h-6 flex items-center justify-center text-xs">1</span>
+          Completa la oración
+        </h3>
+        <p className="text-sm text-slate-500 mb-4">Escribe "would rather" en los espacios.</p>
+        
+        <div className="space-y-3">
+          <FillBlank 
+            before="I" 
+            after="sleep after a long day." 
+            value={quizState.ex1_1} 
+            onChange={(v) => handleInputChange('ex1_1', v)} 
+            status={checkAnswer(quizState.ex1_1, 'would rather')}
+          />
+          <FillBlank 
+            before="She" 
+            after="stay home." 
+            value={quizState.ex1_2} 
+            onChange={(v) => handleInputChange('ex1_2', v)} 
+            status={checkAnswer(quizState.ex1_2, 'would rather')}
+          />
+          <FillBlank 
+            before="They" 
+            after="relax now." 
+            value={quizState.ex1_3} 
+            onChange={(v) => handleInputChange('ex1_3', v)} 
+            status={checkAnswer(quizState.ex1_3, 'would rather')}
+          />
         </div>
-        <h3 className="text-xl font-bold mb-4 relative z-10">Quick Check</h3>
-        <p className="mb-6 text-indigo-200 relative z-10">Which sentence sounds correct?</p>
-        <div className="flex flex-col md:flex-row gap-4 justify-center relative z-10">
-          <button className="px-6 py-4 bg-red-500/20 border border-red-500/50 rounded-lg hover:bg-red-500/40 transition-colors text-red-100 line-through decoration-red-300 decoration-2">
-            I'd rather to sleep.
-          </button>
-          <button className="px-6 py-4 bg-green-500/20 border border-green-500/50 rounded-lg hover:bg-green-500/40 transition-colors text-green-100 font-bold shadow-lg shadow-green-900/20">
-            I'd rather sleep.
-          </button>
+      </div>
+
+      {/* Exercise 2 */}
+      <div className="bg-white p-6 rounded-xl shadow-sm border border-slate-200">
+        <h3 className="font-bold text-lg mb-4 flex items-center gap-2">
+          <span className="bg-slate-800 text-white rounded-full w-6 h-6 flex items-center justify-center text-xs">2</span>
+          Elige la forma correcta
+        </h3>
+        
+        <div className="space-y-6">
+          <MultipleChoice 
+            question="I would rather ___." 
+            options={['rest', 'to rest']} 
+            selected={quizState.ex2_1} 
+            correct="rest"
+            showResults={showResults}
+            onSelect={(v) => handleInputChange('ex2_1', v)}
+          />
+          <MultipleChoice 
+            question="He would rather ___ than drive." 
+            options={['walk', 'to walk']} 
+            selected={quizState.ex2_2} 
+            correct="walk"
+            showResults={showResults}
+            onSelect={(v) => handleInputChange('ex2_2', v)}
+          />
+          <MultipleChoice 
+            question="She would rather ___." 
+            options={['sleep', 'sleeping']} 
+            selected={quizState.ex2_3} 
+            correct="sleep"
+            showResults={showResults}
+            onSelect={(v) => handleInputChange('ex2_3', v)}
+          />
         </div>
+      </div>
+
+      {/* Exercise 3 */}
+      <div className="bg-white p-6 rounded-xl shadow-sm border border-slate-200">
+        <h3 className="font-bold text-lg mb-4 flex items-center gap-2">
+          <span className="bg-slate-800 text-white rounded-full w-6 h-6 flex items-center justify-center text-xs">3</span>
+          Escritura: Decisiones bajo estrés
+        </h3>
+        <p className="text-sm text-slate-500 mb-2">Escribe una oración describiendo una decisión rápida cuando estás cansado.</p>
+        <div className="bg-slate-50 p-3 rounded mb-3 text-sm italic text-slate-600 border border-slate-200">
+          Modelo: When I am very tired, I would rather rest.
+        </div>
+        <textarea 
+          className="w-full p-3 border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none"
+          rows={3}
+          placeholder="Escribe tu respuesta aquí..."
+          value={quizState.ex3_text}
+          onChange={(e) => handleInputChange('ex3_text', e.target.value)}
+        />
+        {showResults && (
+          <div className="mt-3 text-green-700 bg-green-50 p-3 rounded text-sm">
+            <strong>Posible respuesta:</strong> "When I have a deadline, I would rather focus than talk." (¡Cualquier oración con estructura correcta es válida!)
+          </div>
+        )}
+      </div>
+
+      <div className="flex flex-col sm:flex-row gap-4 justify-between items-center pt-4">
+        <button 
+          onClick={() => setShowResults(true)} 
+          className="w-full sm:w-auto px-6 py-3 bg-slate-800 text-white font-bold rounded-lg hover:bg-slate-700 transition-colors flex items-center justify-center gap-2"
+        >
+          <CheckCircle size={20} /> Verificar Respuestas
+        </button>
+        
+        {showResults && (
+           <button onClick={onNext} className="w-full sm:w-auto px-6 py-3 text-indigo-700 font-bold hover:bg-indigo-50 rounded-lg flex items-center justify-center gap-2">
+            Ver Resumen <ArrowRight size={20} />
+          </button>
+        )}
       </div>
     </div>
   );
 };
 
-// --- 3. Practice Section ---
+const SummarySection: React.FC = () => (
+  <div className="animate-fade-in space-y-8">
+    <div className="bg-gradient-to-br from-indigo-600 to-purple-700 text-white p-8 rounded-2xl shadow-lg">
+      <h2 className="text-3xl font-bold mb-6 text-center">¡Lección completada!</h2>
+      
+      <div className="bg-white/10 backdrop-blur-sm p-6 rounded-xl border border-white/20">
+        <h3 className="text-xl font-semibold mb-4 flex items-center gap-2">
+          <CheckCircle className="text-green-300" /> Resumen Clave
+        </h3>
+        <ul className="space-y-4">
+          <li className="flex items-start gap-3">
+            <div className="mt-1 min-w-[6px] h-[6px] rounded-full bg-green-300"></div>
+            <span><strong>Would rather</strong> expresa elecciones inmediatas y rápidas.</span>
+          </li>
+          <li className="flex items-start gap-3">
+            <div className="mt-1 min-w-[6px] h-[6px] rounded-full bg-green-300"></div>
+            <span>Siempre va seguido de un <strong>verbo en forma base</strong> (sin "to").</span>
+          </li>
+          <li className="flex items-start gap-3">
+            <div className="mt-1 min-w-[6px] h-[6px] rounded-full bg-green-300"></div>
+            <span>Para comparar dos acciones se utiliza <strong>than</strong>.</span>
+          </li>
+          <li className="flex items-start gap-3">
+            <div className="mt-1 min-w-[6px] h-[6px] rounded-full bg-green-300"></div>
+            <span>Es ideal para comunicar decisiones bajo <strong>presión de tiempo o estrés</strong>.</span>
+          </li>
+        </ul>
+      </div>
 
-const PracticeSection: React.FC = () => {
-  // --- State for Exercises ---
-  const [fillAnswers, setFillAnswers] = useState<{[key: number]: string}>({});
-  const [fillResults, setFillResults] = useState<{[key: number]: boolean | null}>({});
+      <div className="mt-8 text-center opacity-90 text-indigo-100 italic">
+        "Excellent work! Now you can express your immediate choices clearly."
+      </div>
+    </div>
+
+    <div className="text-center">
+      <button 
+        onClick={() => window.location.reload()} 
+        className="text-slate-500 hover:text-indigo-600 flex items-center justify-center gap-2 mx-auto transition-colors"
+      >
+        <RefreshCw size={16} /> Reiniciar Lección
+      </button>
+    </div>
+  </div>
+);
+
+// --- Helpers ---
+
+const SectionHeader: React.FC<{ number: string; title: string }> = ({ number, title }) => (
+  <h2 className="text-2xl font-bold text-slate-800 mb-4 flex items-center gap-3">
+    <span className="flex items-center justify-center w-8 h-8 bg-indigo-600 text-white rounded-lg text-lg font-bold shadow-sm">
+      {number}
+    </span>
+    {title}
+  </h2>
+);
+
+const ComparisonCard: React.FC<{ title: string; desc: string; icon: string; highlight?: boolean }> = ({ title, desc, icon, highlight }) => (
+  <div className={`p-4 rounded-xl border ${highlight ? 'bg-indigo-50 border-indigo-200 shadow-md transform scale-105' : 'bg-white border-slate-200'}`}>
+    <div className="text-2xl mb-2">{icon}</div>
+    <div className="font-bold text-slate-900 mb-1">{title}</div>
+    <div className="text-sm text-slate-500">{desc}</div>
+  </div>
+);
+
+const ExampleBox: React.FC<{ sentence: string; explanation: string }> = ({ sentence, explanation }) => (
+  <div className="mt-4 p-4 bg-green-50 border border-green-100 rounded-lg">
+    <p className="text-lg font-bold text-green-800 mb-1">"{sentence}"</p>
+    <p className="text-sm text-green-700">{explanation}</p>
+  </div>
+);
+
+const ListItem: React.FC<{ text: string }> = ({ text }) => (
+  <li className="flex items-center gap-3 p-3 bg-white rounded-lg shadow-sm border border-slate-100">
+    <Check size={16} className="text-green-500" />
+    <span className="font-medium text-slate-700">{text}</span>
+  </li>
+);
+
+const ExampleCard: React.FC<{ en: string; es: string }> = ({ en, es }) => (
+  <div className="p-3 border-l-4 border-slate-300 bg-white shadow-sm rounded-r-lg">
+    <p className="font-medium text-slate-800">{en}</p>
+    <p className="text-sm text-slate-500 italic">{es}</p>
+  </div>
+);
+
+const StressExample: React.FC<{ situation: string; response: string }> = ({ situation, response }) => (
+  <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4">
+    <div className="text-xs font-bold uppercase tracking-wide text-red-400 min-w-[120px]">{situation}</div>
+    <div className="font-medium text-slate-800 bg-white/60 px-3 py-1 rounded w-full">
+      {response}
+    </div>
+  </div>
+);
+
+// --- Quiz Components ---
+
+const FillBlank: React.FC<{ before: string; after: string; value: string; onChange: (v: string) => void; status: 'neutral'|'correct'|'incorrect' }> = ({ before, after, value, onChange, status }) => (
+  <div className="flex flex-wrap items-center gap-2 text-lg">
+    <span>{before}</span>
+    <div className="relative">
+      <input 
+        type="text" 
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+        className={`border-b-2 outline-none px-2 py-1 w-32 text-center font-medium transition-colors
+          ${status === 'neutral' ? 'border-slate-300 focus:border-indigo-500' : ''}
+          ${status === 'correct' ? 'border-green-500 text-green-700 bg-green-50' : ''}
+          ${status === 'incorrect' ? 'border-red-500 text-red-700 bg-red-50' : ''}
+        `}
+      />
+      {status === 'correct' && <Check size={16} className="absolute right-0 top-2 text-green-500" />}
+      {status === 'incorrect' && <X size={16} className="absolute right-0 top-2 text-red-500" />}
+    </div>
+    <span>{after}</span>
+  </div>
+);
+
+const MultipleChoice: React.FC<{ 
+  question: string; 
+  options: string[]; 
+  selected: string; 
+  correct: string; 
+  showResults: boolean;
+  onSelect: (v: string) => void 
+}> = ({ question, options, selected, correct, showResults, onSelect }) => {
   
-  const [transformAnswers, setTransformAnswers] = useState<{[key: number]: string}>({});
-  const [transformResults, setTransformResults] = useState<{[key: number]: boolean | null}>({});
-  
-  const [mcAnswers, setMcAnswers] = useState<{[key: number]: string}>({});
-  const [mcResults, setMcResults] = useState<{[key: number]: boolean | null}>({});
-
-  const [writingText, setWritingText] = useState("");
-  const [writingSubmitted, setWritingSubmitted] = useState(false);
-
-  // --- Data ---
-  const fillQuestions = [
-    { id: 1, text: "I __________ stay home tonight.", expected: "would rather" },
-    { id: 2, text: "She __________ tea than coffee.", expected: "would rather" },
-    { id: 3, text: "We __________ eat early.", expected: "would rather" },
-    { id: 4, text: "He __________ you arrived on time.", expected: "would rather" },
-  ];
-
-  const transformQuestions = [
-    { id: 1, original: "I prefer to walk instead of driving.", start: "I'd rather", expected: ["walk than drive", "walk than drive."] },
-    { id: 2, original: "She wants you to wait outside.", start: "She'd rather", expected: ["you waited outside", "you waited outside."] },
-    { id: 3, original: "We prefer eating now.", start: "We'd rather", expected: ["eat now", "eat now."] },
-  ];
-
-  const mcQuestions = [
-    { id: 1, q: "I'd rather ___ now.", options: ["to leave", "leave"], correct: "leave" },
-    { id: 2, q: "She'd rather walk ___ drive.", options: ["than", "to"], correct: "than" },
-  ];
-
-  // --- Handlers ---
-  const checkFill = (id: number, expected: string) => {
-    const val = fillAnswers[id]?.trim().toLowerCase() || "";
-    const isCorrect = val === expected.toLowerCase() || val === "'d rather";
-    setFillResults(prev => ({...prev, [id]: isCorrect}));
-  };
-
-  const checkTransform = (id: number, expected: string[]) => {
-    const val = transformAnswers[id]?.trim().toLowerCase() || "";
-    // Check if the user input matches any of the valid expected endings
-    const isCorrect = expected.some(ex => val === ex.toLowerCase());
-    setTransformResults(prev => ({...prev, [id]: isCorrect}));
-  };
-
-  const checkMC = (id: number, selected: string, correct: string) => {
-    setMcAnswers(prev => ({...prev, [id]: selected}));
-    setMcResults(prev => ({...prev, [id]: selected === correct}));
+  const getStatusClass = (option: string) => {
+    if (!showResults) return selected === option ? 'bg-indigo-600 text-white border-indigo-600' : 'bg-white text-slate-700 border-slate-300 hover:border-indigo-400';
+    
+    if (option === correct) return 'bg-green-600 text-white border-green-600';
+    if (selected === option && option !== correct) return 'bg-red-500 text-white border-red-500';
+    return 'bg-slate-50 text-slate-400 border-slate-200';
   };
 
   return (
-    <div className="space-y-12 pb-12 animate-fadeIn">
-      
-      {/* A. Fill in the blanks */}
-      <section className="bg-white p-6 rounded-xl shadow-sm border border-slate-200">
-        <h3 className="text-lg font-bold text-slate-800 mb-4 flex items-center gap-2">
-          <span className="bg-indigo-100 text-indigo-700 w-8 h-8 rounded-full flex items-center justify-center text-sm">A</span>
-          Fill in the blanks
-        </h3>
-        <p className="text-slate-500 mb-6 text-sm">Complete with the correct form of "would rather".</p>
-        
-        <div className="space-y-4">
-          {fillQuestions.map(q => (
-            <div key={q.id} className="flex flex-col sm:flex-row sm:items-center gap-3 p-3 bg-slate-50 rounded-lg">
-              <div className="flex-grow font-medium text-slate-700 leading-8">
-                {q.text.split("__________")[0]}
-                <input 
-                  type="text" 
-                  className={`mx-2 border-b-2 bg-transparent outline-none text-center w-32 focus:border-indigo-500 transition-colors
-                    ${fillResults[q.id] === true ? 'border-green-500 text-green-700' : 
-                      fillResults[q.id] === false ? 'border-red-500 text-red-700' : 'border-slate-300'}`}
-                  placeholder="type here"
-                  value={fillAnswers[q.id] || ""}
-                  onChange={(e) => {
-                    setFillAnswers({...fillAnswers, [q.id]: e.target.value});
-                    setFillResults({...fillResults, [q.id]: null}); // Reset status on type
-                  }}
-                  onKeyDown={(e) => e.key === 'Enter' && checkFill(q.id, q.expected)}
-                />
-                {q.text.split("__________")[1]}
-              </div>
-              <button 
-                onClick={() => checkFill(q.id, q.expected)}
-                className="bg-indigo-600 text-white px-4 py-1 rounded text-sm hover:bg-indigo-700 transition-colors self-end sm:self-auto"
-              >
-                Check
-              </button>
-            </div>
-          ))}
-        </div>
-      </section>
-
-      {/* B. Transform */}
-      <section className="bg-white p-6 rounded-xl shadow-sm border border-slate-200">
-        <h3 className="text-lg font-bold text-slate-800 mb-4 flex items-center gap-2">
-          <span className="bg-indigo-100 text-indigo-700 w-8 h-8 rounded-full flex items-center justify-center text-sm">B</span>
-          Transform
-        </h3>
-        <p className="text-slate-500 mb-6 text-sm">Rewrite the phrases using <strong>would rather</strong>.</p>
-
-        <div className="grid gap-6">
-          {transformQuestions.map(q => (
-            <div key={q.id} className="border border-slate-100 rounded-lg p-4 hover:bg-slate-50 transition-colors">
-              <p className="text-slate-500 text-sm mb-2 italic">Original: "{q.original}"</p>
-              <div className="flex items-center gap-2 flex-wrap">
-                <span className="font-bold text-slate-700">{q.start}</span>
-                <input 
-                  type="text"
-                  className={`flex-grow border rounded px-3 py-2 outline-none focus:ring-2 focus:ring-indigo-200 
-                    ${transformResults[q.id] === true ? 'border-green-500 bg-green-50' : 
-                      transformResults[q.id] === false ? 'border-red-500 bg-red-50' : 'border-slate-300'}`}
-                  placeholder="..."
-                  value={transformAnswers[q.id] || ""}
-                  onChange={(e) => {
-                    setTransformAnswers({...transformAnswers, [q.id]: e.target.value});
-                    setTransformResults({...transformResults, [q.id]: null});
-                  }}
-                  onKeyDown={(e) => e.key === 'Enter' && checkTransform(q.id, q.expected)}
-                />
-                <button 
-                  onClick={() => checkTransform(q.id, q.expected)}
-                  className="text-slate-400 hover:text-indigo-600 p-2"
-                >
-                  <CheckCircle size={20} />
-                </button>
-              </div>
-              {transformResults[q.id] === false && (
-                <p className="text-red-500 text-xs mt-2">Try again! Hint: {q.start} {q.expected[0]}</p>
-              )}
-            </div>
-          ))}
-        </div>
-      </section>
-
-      {/* C. Choose correct option */}
-      <section className="bg-white p-6 rounded-xl shadow-sm border border-slate-200">
-        <h3 className="text-lg font-bold text-slate-800 mb-4 flex items-center gap-2">
-          <span className="bg-indigo-100 text-indigo-700 w-8 h-8 rounded-full flex items-center justify-center text-sm">C</span>
-          Multiple Choice
-        </h3>
-        
-        <div className="grid md:grid-cols-2 gap-6">
-          {mcQuestions.map(q => (
-            <div key={q.id} className="bg-slate-50 p-5 rounded-lg">
-              <p className="font-medium text-slate-800 mb-4 text-lg">{q.q}</p>
-              <div className="flex gap-3">
-                {q.options.map(opt => {
-                  const isSelected = mcAnswers[q.id] === opt;
-                  const isCorrect = opt === q.correct;
-                  const showResult = mcResults[q.id] !== undefined; // User has answered
-                  
-                  let btnClass = "flex-1 py-2 px-4 rounded border transition-all duration-200 ";
-                  
-                  if (showResult) {
-                     if (isSelected && isCorrect) btnClass += "bg-green-600 text-white border-green-600";
-                     else if (isSelected && !isCorrect) btnClass += "bg-red-500 text-white border-red-500";
-                     else if (!isSelected && isCorrect) btnClass += "bg-green-100 text-green-800 border-green-200 border-dashed";
-                     else btnClass += "bg-white text-slate-400 border-slate-200 opacity-50";
-                  } else {
-                    btnClass += "bg-white hover:bg-indigo-50 hover:border-indigo-300 border-slate-200 text-slate-700";
-                  }
-
-                  return (
-                    <button 
-                      key={opt}
-                      className={btnClass}
-                      onClick={() => !showResult && checkMC(q.id, opt, q.correct)}
-                      disabled={showResult}
-                    >
-                      {opt}
-                    </button>
-                  );
-                })}
-              </div>
-            </div>
-          ))}
-        </div>
-      </section>
-
-      {/* D. Personal Production */}
-      <section className="bg-gradient-to-br from-indigo-600 to-purple-700 p-6 rounded-xl shadow-lg text-white">
-        <h3 className="text-lg font-bold mb-2 flex items-center gap-2">
-          <span className="bg-white/20 w-8 h-8 rounded-full flex items-center justify-center text-sm">D</span>
-          Your Turn
-        </h3>
-        <p className="text-indigo-100 mb-4 text-sm">Write 3 sentences about your own daily decisions using "would rather".</p>
-        
-        {!writingSubmitted ? (
-          <div className="space-y-4">
-            <textarea 
-              className="w-full h-32 rounded-lg bg-white/10 border border-white/20 p-4 text-white placeholder-indigo-300 focus:outline-none focus:ring-2 focus:ring-white/50 resize-none"
-              placeholder="1. I'd rather...&#10;2. She'd rather...&#10;3. We'd rather..."
-              value={writingText}
-              onChange={(e) => setWritingText(e.target.value)}
-            ></textarea>
-            <button 
-              onClick={() => {
-                if(writingText.length > 5) setWritingSubmitted(true);
-              }}
-              className="flex items-center gap-2 bg-white text-indigo-700 px-6 py-2 rounded-full font-bold hover:bg-indigo-50 transition-colors shadow-lg"
-            >
-              <Send size={16} /> Submit Writing
-            </button>
-          </div>
-        ) : (
-          <div className="bg-white/10 rounded-lg p-6 text-center animate-fadeIn">
-            <div className="inline-block p-3 bg-green-500 rounded-full mb-3 shadow-lg">
-              <CheckCircle size={32} className="text-white" />
-            </div>
-            <h4 className="text-xl font-bold mb-2">Great Practice!</h4>
-            <p className="text-indigo-100 mb-4">You've engaged with the grammar structure actively.</p>
-            <button 
-              onClick={() => { setWritingSubmitted(false); setWritingText(""); }}
-              className="text-sm text-indigo-200 hover:text-white flex items-center gap-1 mx-auto"
-            >
-              <RefreshCw size={14} /> Start Over
-            </button>
-          </div>
-        )}
-      </section>
-
+    <div>
+      <p className="font-medium text-slate-800 mb-3 text-lg">{question}</p>
+      <div className="flex gap-3">
+        {options.map(opt => (
+          <button
+            key={opt}
+            onClick={() => !showResults && onSelect(opt)}
+            className={`px-4 py-2 rounded-full border transition-all font-medium ${getStatusClass(opt)}`}
+            disabled={showResults}
+          >
+            {opt}
+          </button>
+        ))}
+      </div>
+      {showResults && selected !== correct && (
+        <p className="text-xs text-red-500 mt-2">Correcto: {correct}</p>
+      )}
     </div>
   );
 };
